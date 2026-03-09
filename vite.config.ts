@@ -44,6 +44,10 @@ export default defineConfig({
     // Aumentar el límite de advertencia a 600 KB
     chunkSizeWarningLimit: 600
   },
+  // Eliminar console.* y debugger del bundle de producción
+  esbuild: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
+  },
   preview: {
     port: 4173,
     host: true
