@@ -32,7 +32,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        // Refresh token inválido o expirado — limpiar sesión corrupta
+        console.warn('⚠️ Sesión inválida, limpiando tokens:', error.message)
+        supabase.auth.signOut()
+        setUser(null)
+        setSession(null)
+        setLoading(false)
+        return
+      }
       setSession(session)
       if (session?.user) {
         fetchUserProfile(session.user)
@@ -44,7 +53,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setSession(null)
+          setLoading(false)
+          return
+        }
+      }
       setSession(session)
       if (session?.user) {
         fetchUserProfile(session.user)
