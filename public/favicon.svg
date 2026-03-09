@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Engranaje -->
+  <g fill="#000">
+    <!-- Dientes del engranaje (8 dientes) -->
+    <rect x="46" y="5" width="8" height="15" rx="2"/>
+    <rect x="46" y="80" width="8" height="15" rx="2"/>
+    <rect x="5" y="46" width="15" height="8" ry="2"/>
+    <rect x="80" y="46" width="15" height="8" ry="2"/>
+    <rect x="17" y="17" width="12" height="8" rx="2" transform="rotate(45 23 21)"/>
+    <rect x="71" y="17" width="12" height="8" rx="2" transform="rotate(-45 77 21)"/>
+    <rect x="17" y="75" width="12" height="8" rx="2" transform="rotate(-45 23 79)"/>
+    <rect x="71" y="75" width="12" height="8" rx="2" transform="rotate(45 77 79)"/>
+    <!-- Cuerpo circular -->
+    <circle cx="50" cy="50" r="28"/>
+    <!-- Agujero central -->
+    <circle cx="50" cy="50" r="12" fill="#fff"/>
+  </g>
+</svg>
