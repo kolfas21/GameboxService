@@ -6,6 +6,7 @@ export interface User {
   full_name: string | null
   role: UserRole
   sede: string | null
+  branch_phone: string | null
   created_at: string
   updated_at: string
 }

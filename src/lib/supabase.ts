@@ -1,17 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
-import { supabaseConfig } from '../config/supabase'
-
-export const supabase = createClient(
-  supabaseConfig.url, 
-  supabaseConfig.anonKey,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
-    }
-  }
-)
+// Re-exporta el cliente único definido en la capa de infraestructura.
+// Todos los módulos fuera de infrastructure/ deben importar desde aquí.
+export { supabase } from '../infrastructure/supabase/supabaseClient'
 
 export type Database = {
   public: {

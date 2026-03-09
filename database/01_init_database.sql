@@ -65,6 +65,11 @@ CREATE TABLE IF NOT EXISTS service_orders (
   completion_notes TEXT,
   delivery_notes TEXT,
   delivered_at TIMESTAMP WITH TIME ZONE,
+  -- Campos de resultado y cobro (registrados al completar/entregar)
+  repair_result TEXT CHECK (repair_result IN ('repaired', 'not_repaired')),
+  repair_cost DECIMAL(10, 2),
+  payment_method TEXT CHECK (payment_method IN ('efectivo', 'transferencia', 'tarjeta', 'otro')),
+  payment_collected_by_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -348,6 +353,10 @@ COMMENT ON COLUMN service_orders.delivery_notes IS 'Notas opcionales al momento 
 COMMENT ON COLUMN service_orders.delivered_at IS 'Fecha y hora de entrega al cliente';
 COMMENT ON COLUMN company_settings.features_enabled IS 'Control de funcionalidades habilitadas (outsourcing, warranty_tracking, technician_stats)';
 COMMENT ON COLUMN company_settings.required_fields IS 'Configuración de campos obligatorios en órdenes de servicio';
+COMMENT ON COLUMN service_orders.repair_result IS 'Resultado de la reparación: repaired (reparado) o not_repaired (no reparado). Lo registra el técnico al completar';
+COMMENT ON COLUMN service_orders.repair_cost IS 'Monto cobrado al cliente al entregar el equipo';
+COMMENT ON COLUMN service_orders.payment_method IS 'Método de pago: efectivo, transferencia, tarjeta u otro';
+COMMENT ON COLUMN service_orders.payment_collected_by_id IS 'ID del usuario que registró el cobro al entregar';
 
 -- ============================================
 -- VERIFICACIÓN

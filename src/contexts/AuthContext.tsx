@@ -31,44 +31,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        // Refresh token inválido o expirado — limpiar sesión corrupta
-        console.warn('⚠️ Sesión inválida, limpiando tokens:', error.message)
-        supabase.auth.signOut()
+    // onAuthStateChange es el único source of truth para el estado de auth.
+    // Supabase v2 emite INITIAL_SESSION al montar (con sesión o null),
+    // evitando la doble llamada que ocurre al combinar con getSession().
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+
+      if (!session?.user) {
         setUser(null)
-        setSession(null)
         setLoading(false)
         return
       }
-      setSession(session)
-      if (session?.user) {
-        fetchUserProfile(session.user)
-      } else {
-        setLoading(false)
-      }
-    })
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        if (event === 'SIGNED_OUT') {
-          setUser(null)
-          setSession(null)
-          setLoading(false)
-          return
-        }
-      }
-      setSession(session)
-      if (session?.user) {
-        fetchUserProfile(session.user)
-      } else {
-        setUser(null)
-        setLoading(false)
-      }
+      // No llamar funciones async directamente en el callback de Supabase
+      setTimeout(() => fetchUserProfile(session.user), 0)
     })
 
     return () => subscription.unsubscribe()

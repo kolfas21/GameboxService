@@ -2,8 +2,8 @@
 -- GAMEBOX SERVICE - POLÍTICAS DE SEGURIDAD (RLS)
 -- ============================================
 -- Descripción: Configuración completa de Row Level Security
--- Versión: 3.0 (Consolidado)
--- Fecha: 2026-02-17
+-- Versión: 3.1
+-- Fecha: 2026-03-09
 -- ============================================
 -- IMPORTANTE: 
 -- - Este script USA la función current_user_role() para EVITAR RECURSIÓN
@@ -11,7 +11,30 @@
 -- ============================================
 
 -- ============================================
--- PARTE 1: HABILITAR ROW LEVEL SECURITY
+-- PARTE 1: GRANTS DE PERMISOS BASE
+-- ============================================
+-- CRÍTICO: Sin estos GRANT, PostgreSQL devuelve 403 "permission denied for table users"
+-- ANTES de evaluar las políticas RLS, aunque estén correctamente definidas.
+
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.customers TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.service_orders TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.company_settings TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.external_workshops TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.external_repairs TO authenticated;
+
+GRANT SELECT ON public.company_settings TO anon;
+
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+
+GRANT EXECUTE ON FUNCTION public.current_user_role() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.handle_new_user() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_updated_at_column() TO authenticated;
+
+-- ============================================
+-- PARTE 2: HABILITAR ROW LEVEL SECURITY
 -- ============================================
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -25,7 +48,7 @@ ALTER TABLE external_repairs ENABLE ROW LEVEL SECURITY;
 -- PARTE 2: POLÍTICAS PARA PROFILES
 -- ============================================
 
--- Limpiar políticas existentes
+-- Limpiar políticas existentes (incluyendo todas las variantes históricas)
 DROP POLICY IF EXISTS "Usuarios pueden ver su propio perfil" ON profiles;
 DROP POLICY IF EXISTS "Usuarios pueden actualizar su propio perfil" ON profiles;
 DROP POLICY IF EXISTS "Administradores pueden ver todos los perfiles" ON profiles;
@@ -43,6 +66,15 @@ DROP POLICY IF EXISTS "profiles_update_admin" ON profiles;
 DROP POLICY IF EXISTS "profiles_insert_admin" ON profiles;
 DROP POLICY IF EXISTS "profiles_select_staff" ON profiles;
 DROP POLICY IF EXISTS "profiles_select_authenticated" ON profiles;
+-- CRÍTICO: Políticas obsoletas de fix_policies.sql y fix_admin.sql que usan
+-- auth.users directamente → causan "permission denied for table users" (42501)
+DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
+DROP POLICY IF EXISTS "Admins can create profiles" ON profiles;
+DROP POLICY IF EXISTS "Admins can manage all profiles" ON profiles;
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+DROP POLICY IF EXISTS "Allow admin email to view all profiles" ON profiles;
+DROP POLICY IF EXISTS "Allow admin email to create profiles" ON profiles;
 
 -- Políticas nuevas (SIN RECURSIÓN - usa current_user_role())
 -- Todos los usuarios autenticados pueden ver perfiles (necesario para ver técnico asignado)
@@ -116,13 +148,21 @@ DROP POLICY IF EXISTS "service_orders_update" ON service_orders;
 DROP POLICY IF EXISTS "service_orders_delete" ON service_orders;
 
 -- Políticas nuevas
--- Ver órdenes: Técnico asignado, quien recibió, admin, recepcionista
+-- Ver órdenes:
+--   Admin y recepcionista: VEN TODAS (incluyendo outsourced)
+--   Técnico: SOLO pendientes + sus propias asignadas (NO ve outsourced)
 CREATE POLICY "service_orders_select"
 ON service_orders FOR SELECT
 USING (
-  auth.uid() = assigned_technician_id OR
-  auth.uid() = received_by_id OR
   public.current_user_role() IN ('admin', 'receptionist')
+  OR (
+    public.current_user_role() = 'technician'
+    AND status != 'outsourced'
+    AND (
+      status = 'pending'
+      OR assigned_technician_id = auth.uid()
+    )
+  )
 );
 
 -- Crear órdenes: Admin y Recepcionista
@@ -132,13 +172,28 @@ WITH CHECK (
   public.current_user_role() IN ('admin', 'receptionist')
 );
 
--- Actualizar órdenes: Admin, Recepcionista, Técnico asignado, quien recibió
+-- Actualizar órdenes: Admin, Recepcionista, Técnico asignado, quien recibió, técnico tomando pendiente
 CREATE POLICY "service_orders_update"
 ON service_orders FOR UPDATE
 USING (
   public.current_user_role() IN ('admin', 'receptionist')
   OR auth.uid() = assigned_technician_id
   OR auth.uid() = received_by_id
+  OR (
+    public.current_user_role() = 'technician'
+    AND status = 'pending'
+  )
+)
+WITH CHECK (
+  public.current_user_role() IN ('admin', 'receptionist')
+  OR auth.uid() = received_by_id
+  OR (
+    public.current_user_role() = 'technician'
+    AND (
+      (status = 'in_progress' AND assigned_technician_id = auth.uid())
+      OR (status = 'completed' AND assigned_technician_id = auth.uid())
+    )
+  )
 );
 
 -- Eliminar órdenes: SOLO Admin
@@ -254,6 +309,21 @@ ON external_repairs FOR DELETE
 USING (
   public.current_user_role() = 'admin'
 );
+
+-- ============================================
+-- PARTE 8: COLUMNAS DE PAGO (idempotente)
+-- ============================================
+-- Si la tabla fue creada con 01_init_database.sql v4.0+, estos ALTER no hacen nada.
+-- Si se migra desde una versión anterior, agrega los campos automáticamente.
+
+ALTER TABLE service_orders
+  ADD COLUMN IF NOT EXISTS repair_result TEXT CHECK (repair_result IN ('repaired', 'not_repaired'));
+ALTER TABLE service_orders
+  ADD COLUMN IF NOT EXISTS repair_cost DECIMAL(10, 2);
+ALTER TABLE service_orders
+  ADD COLUMN IF NOT EXISTS payment_method TEXT CHECK (payment_method IN ('efectivo', 'transferencia', 'tarjeta', 'otro'));
+ALTER TABLE service_orders
+  ADD COLUMN IF NOT EXISTS payment_collected_by_id UUID REFERENCES profiles(id) ON DELETE SET NULL;
 
 -- ============================================
 -- VERIFICACIÓN

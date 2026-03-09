@@ -1,6 +1,165 @@
 # Guía de Configuración — Nueva Base de Datos en Supabase
 
-Sigue estos pasos **en orden** cada vez que vayas a configurar un nuevo taller con su propia base de datos.
+Sigue estos pasos **en orden** para dejar un taller funcionando desde cero.  
+Solo se necesitan **3 scripts SQL** y crear el primer usuario admin.
+
+---
+
+## Requisitos previos
+
+- Cuenta en [supabase.com](https://supabase.com)
+- Proyecto nuevo creado (**New Project**)
+- Acceso al **SQL Editor** del proyecto (`Project → SQL Editor`)
+
+---
+
+## Paso 1 — Estructura de tablas, funciones y triggers
+
+**SQL Editor → New query → pegar `01_init_database.sql` → Run**
+
+Crea:
+- Tablas: `profiles`, `customers`, `service_orders` (con campos de cobro incluidos), `company_settings`, `external_workshops`, `external_repairs`
+- Función `current_user_role()` — evita recursión infinita en las políticas RLS
+- Función `handle_new_user()` — crea el perfil automáticamente al registrar un usuario
+- Triggers `updated_at` en todas las tablas
+- Índices de rendimiento
+- Vista `v_external_repairs_full`
+- Fila inicial en `company_settings` con datos de ejemplo (editar antes de ejecutar si deseas)
+
+> ✅ Resultado esperado: tabla listando las 6 tablas con estado `✅`
+
+---
+
+## Paso 2 — Seguridad: RLS + GRANTs
+
+**SQL Editor → New query → pegar `02_init_policies.sql` → Run**
+
+Habilita Row Level Security y crea todas las políticas. También ejecuta los `GRANT` base y, si la base de datos viene de una versión anterior, agrega automáticamente los campos de cobro a `service_orders`.
+
+### Qué puede hacer cada rol:
+
+| Tabla | Admin | Recepcionista | Técnico |
+|---|---|---|---|
+| `profiles` | Todo | Ver | Ver |
+| `customers` | Todo | Ver + Crear | Ver |
+| `service_orders` | Todo | Ver + Crear + Editar | Ver pendientes + sus asignadas |
+| `company_settings` | Todo | Ver | Ver |
+| `external_workshops` | Todo | Ver | Ver |
+| `external_repairs` | Todo | Ver + Crear + Editar | Ver |
+
+> ✅ Resultado esperado: tablas listando las políticas activas por tabla
+
+---
+
+## Paso 3 — Storage para logos
+
+**SQL Editor → New query → pegar `03_setup_storage.sql` → Run**
+
+Crea:
+- Bucket `company-assets` (público, máx. 10 MB, acepta JPEG/PNG/GIF/WebP/SVG)
+- Políticas de acceso: lectura pública, subir/editar/borrar solo usuarios autenticados
+
+> ✅ Resultado esperado: bucket `company-assets` visible en **Storage → Buckets**
+
+---
+
+## Paso 4 — Crear el primer usuario administrador
+
+1. En Supabase: **Authentication → Users → Add user → Create new user**
+2. Escribe el email y contraseña del admin → **Create user**
+3. Espera unos segundos (el trigger `handle_new_user` crea el perfil automáticamente)
+4. **SQL Editor → New query** → ejecutar (cambiando el email):
+
+```sql
+UPDATE profiles
+SET role = 'admin', full_name = 'Nombre del Administrador'
+WHERE email = 'correo@del.admin.com';
+```
+
+5. Verificar:
+
+```sql
+SELECT id, email, full_name, role FROM profiles;
+```
+
+> ✅ El usuario debe aparecer con `role = admin`
+
+---
+
+## Paso 5 — Conectar la aplicación
+
+En Supabase: **Settings → API** → copiar:
+
+| Variable | Valor |
+|---|---|
+| `VITE_SUPABASE_URL` | Project URL (ej. `https://xxxx.supabase.co`) |
+| `VITE_SUPABASE_ANON_KEY` | anon public key |
+
+Crear/editar `.env` en la raíz del proyecto:
+
+```env
+VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGc...
+```
+
+Iniciar la app:
+
+```bash
+npm run dev
+```
+
+---
+
+## Paso 6 — Configurar datos del taller
+
+Iniciar sesión con el admin → **Configuración** en el menú lateral → editar:
+
+- Nombre del taller, logo, colores
+- Datos de contacto (teléfono, email, dirección, redes sociales)
+- Horario de atención
+
+---
+
+## Estructura de campos en service_orders
+
+| Campo | Quién lo completa | Cuándo |
+|---|---|---|
+| `repair_result` | Técnico | Al marcar como "completada" |
+| `repair_cost` | Admin / Recepcionista | Al entregar al cliente |
+| `payment_method` | Admin / Recepcionista | Al entregar al cliente |
+| `payment_collected_by_id` | Auto (usuario actual) | Al entregar al cliente |
+
+---
+
+## Errores comunes y soluciones
+
+### `permission denied for table users` (código 42501)
+**Causa:** Políticas RLS obsoletas que hacen `SELECT FROM auth.users` directamente.  
+**Solución:** Asegúrate de haber ejecutado `02_init_policies.sql` en su versión actual (v3.1+). Si el error persiste, verifica con:
+
+```sql
+SELECT tablename, policyname, qual
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND (qual LIKE '%auth.users%' OR with_check LIKE '%auth.users%');
+```
+
+Si devuelve filas, ejecutar `DROP POLICY IF EXISTS "<nombre>" ON <tabla>;` para cada una.
+
+### `Invalid Refresh Token`
+Supabase cerró la sesión por token expirado/revocado. Es normal. La app lo maneja automáticamente limpiando el estado de auth y redirigiendo al login.
+
+### Perfil no creado automáticamente
+Si el trigger `handle_new_user` no corrió (usuario creado antes de ejecutar `01_init_database.sql`), insertar el perfil manualmente:
+
+```sql
+INSERT INTO profiles (id, email, full_name, role)
+SELECT id, email, 'Nombre', 'admin'
+FROM auth.users
+WHERE email = 'correo@del.admin.com'
+ON CONFLICT (id) DO UPDATE SET role = 'admin';
+```
+
 
 ---
 
