@@ -5,6 +5,7 @@ import {
   Upload, 
   Save, 
   Image as ImageIcon,
+  Palette,
   ToggleLeft,
   ToggleRight,
   Zap,
@@ -14,6 +15,52 @@ import { useCompanySettings } from '../hooks'
 import { useModal } from '../hooks/useModal'
 import { CustomModal } from './ui/CustomModal'
 import type { CompanySettings } from '../types'
+
+type LoginThemePreset = {
+  id: string
+  name: string
+  description: string
+  primary: string
+  secondary: string
+}
+
+const LOGIN_THEME_PRESETS: LoginThemePreset[] = [
+  {
+    id: 'oceano-claro',
+    name: 'Oceano Claro',
+    description: 'Fresco y corporativo',
+    primary: '#3B82F6',
+    secondary: '#0EA5E9'
+  },
+  {
+    id: 'esmeralda',
+    name: 'Esmeralda',
+    description: 'Limpio y natural',
+    primary: '#10B981',
+    secondary: '#06B6D4'
+  },
+  {
+    id: 'sunset',
+    name: 'Sunset',
+    description: 'Calido y moderno',
+    primary: '#F97316',
+    secondary: '#EC4899'
+  },
+  {
+    id: 'grafito',
+    name: 'Grafito',
+    description: 'Sobrio y elegante',
+    primary: '#334155',
+    secondary: '#64748B'
+  },
+  {
+    id: 'violeta-azul',
+    name: 'Violeta Azul',
+    description: 'Tecnologico y vibrante',
+    primary: '#6366F1',
+    secondary: '#3B82F6'
+  }
+]
 
 const Settings: React.FC = () => {
   const { settings, loading, updateSettings, uploadLogo, refreshSettings } = useCompanySettings()
@@ -25,6 +72,8 @@ const Settings: React.FC = () => {
 
   const [formData, setFormData] = useState<Partial<CompanySettings>>({
     company_name: '',
+    primary_color: '#3B82F6',
+    secondary_color: '#64748B',
     features_enabled: {
       outsourcing: true,
       warranty_tracking: true,
@@ -44,6 +93,8 @@ const Settings: React.FC = () => {
     if (settings) {
       setFormData({
         company_name: settings.company_name || '',
+        primary_color: settings.primary_color || '#3B82F6',
+        secondary_color: settings.secondary_color || '#64748B',
         features_enabled: settings.features_enabled || {
           outsourcing: true,
           warranty_tracking: true,
@@ -64,6 +115,14 @@ const Settings: React.FC = () => {
 
   const handleInputChange = (field: keyof CompanySettings, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const applyThemePreset = (preset: LoginThemePreset) => {
+    setFormData(prev => ({
+      ...prev,
+      primary_color: preset.primary,
+      secondary_color: preset.secondary
+    }))
   }
 
   const handleFeatureToggle = (feature: keyof CompanySettings['features_enabled']) => {
@@ -332,6 +391,51 @@ const Settings: React.FC = () => {
                   />
                   <small className="text-muted d-block mt-1">
                     Este nombre aparecerá en las comandas y stickers de servicio
+                  </small>
+                </div>
+
+                {/* Color Primario */}
+                <div className="col-12">
+                  <label className="form-label fw-bold d-flex align-items-center gap-2 mb-2">
+                    <Palette size={18} />
+                    Temas Rapidos para Login
+                  </label>
+                  <div className="row g-2">
+                    {LOGIN_THEME_PRESETS.map((preset) => {
+                      const isActive =
+                        (formData.primary_color || '').toUpperCase() === preset.primary &&
+                        (formData.secondary_color || '').toUpperCase() === preset.secondary
+
+                      return (
+                        <div key={preset.id} className="col-12 col-sm-6 col-lg-4">
+                          <button
+                            type="button"
+                            onClick={() => applyThemePreset(preset)}
+                            className={`btn w-100 text-start border ${isActive ? 'border-primary bg-primary bg-opacity-10' : 'border-light-subtle bg-white'}`}
+                            style={{ borderRadius: '0.75rem' }}
+                          >
+                            <div
+                              className="rounded mb-2"
+                              style={{
+                                height: '34px',
+                                background: `linear-gradient(90deg, ${preset.primary}, ${preset.secondary})`
+                              }}
+                            />
+                            <div className="fw-semibold text-dark">{preset.name}</div>
+                            <small className="text-muted">{preset.description}</small>
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <small className="text-muted d-block mt-2">
+                    Selecciona un tema y luego guarda cambios
+                  </small>
+                </div>
+
+                <div className="col-12">
+                  <small className="text-muted d-block mt-1">
+                    El estilo de color del login se define solo por temas predefinidos.
                   </small>
                 </div>
               </div>

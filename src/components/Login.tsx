@@ -18,6 +18,23 @@ import {
 } from 'lucide-react'
 import logoGamebox from '../assets/logo-gamebox.png'
 
+const hexToRgb = (hex: string): string => {
+  const normalized = hex.replace('#', '').trim()
+  const fullHex = normalized.length === 3
+    ? normalized.split('').map((char) => `${char}${char}`).join('')
+    : normalized
+
+  if (!/^[0-9a-fA-F]{6}$/.test(fullHex)) {
+    return '96, 165, 250'
+  }
+
+  const num = Number.parseInt(fullHex, 16)
+  const r = (num >> 16) & 255
+  const g = (num >> 8) & 255
+  const b = num & 255
+  return `${r}, ${g}, ${b}`
+}
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,6 +48,10 @@ const Login: React.FC = () => {
   const companyInitial = companyName.charAt(0).toUpperCase()
   const hasWarranty = settings?.features_enabled?.warranty_tracking !== false
   const hasOutsourcing = settings?.features_enabled?.outsourcing !== false
+  const primaryColor = settings?.primary_color || '#60A5FA'
+  const secondaryColor = settings?.secondary_color || '#38BDF8'
+  const primaryColorRgb = hexToRgb(primaryColor)
+  const secondaryColorRgb = hexToRgb(secondaryColor)
 
   // Solo mostrar el logo una vez que la BD haya respondido
   // Si settingsLoading es true, displayLogo será null (no se muestra nada)
@@ -70,7 +91,15 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="modern-login-page">
+    <div
+      className="modern-login-page"
+      style={{
+        '--login-primary': primaryColor,
+        '--login-secondary': secondaryColor,
+        '--login-primary-rgb': primaryColorRgb,
+        '--login-secondary-rgb': secondaryColorRgb
+      } as React.CSSProperties}
+    >
       <div className="container modern-login-container">
         <div className="modern-login-shell">
           <div className="modern-login-grid row g-0">
@@ -160,13 +189,12 @@ const Login: React.FC = () => {
             <div className="col-12 col-lg-6 modern-login-panel-wrap d-flex">
               <div className="modern-login-panel my-auto w-100">
                 <div className="text-center mb-4">
-                  <div className="d-flex justify-content-center align-items-center mb-2" style={{ minHeight: '80px' }}>
+                  <div className="modern-login-logo-wrap d-flex justify-content-center align-items-center mb-2">
                     {logoWithCacheBust && (
                       <img
                         src={logoWithCacheBust}
                         alt={companyName}
-                        className="img-fluid"
-                        style={{ width: '210px', height: '80px', objectFit: 'contain' }}
+                        className="img-fluid modern-login-logo"
                       />
                     )}
                   </div>                  
@@ -204,7 +232,7 @@ const Login: React.FC = () => {
                   </div>
 
                   <div className="mb-2">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
+                    <div className="d-flex justify-content-between align-items-center mb-2 modern-login-password-head">
                       <label htmlFor="password" className="form-label modern-login-label mb-0">Contraseña</label>
                       <span className="modern-login-link-hint">
                         Recuperacion por administrador
