@@ -163,7 +163,8 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+   SET search_path = public;
 
 -- Función para crear perfil automáticamente cuando se registra un usuario
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -178,14 +179,16 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+   SET search_path = public;
 
 -- Función helper para obtener el rol del usuario actual (sin recursión RLS)
 -- Esta función es CRÍTICA para evitar recursión infinita en las políticas
 CREATE OR REPLACE FUNCTION public.current_user_role()
 RETURNS TEXT AS $$
   SELECT role FROM public.profiles WHERE id = auth.uid() LIMIT 1;
-$$ LANGUAGE SQL SECURITY DEFINER STABLE;
+$$ LANGUAGE SQL SECURITY DEFINER STABLE
+   SET search_path = public;
 
 -- ============================================
 -- PARTE 4: TRIGGERS
@@ -260,7 +263,9 @@ CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
 -- ============================================
 
 -- Vista para ver reparaciones externas con información completa
-CREATE OR REPLACE VIEW v_external_repairs_full AS
+CREATE OR REPLACE VIEW v_external_repairs_full
+WITH (security_invoker = on)
+AS
 SELECT 
   er.id,
   er.service_order_id,

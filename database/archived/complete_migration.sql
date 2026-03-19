@@ -152,7 +152,8 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+   SET search_path = public;
 
 -- Función para crear perfil automáticamente cuando se registra un usuario
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -167,7 +168,8 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+   SET search_path = public;
 
 -- ============================================
 -- PARTE 3: TRIGGERS
@@ -420,7 +422,9 @@ CREATE INDEX IF NOT EXISTS idx_external_repairs_external_status ON external_repa
 -- ============================================
 
 -- Vista para ver reparaciones externas con información completa
-CREATE OR REPLACE VIEW v_external_repairs_full AS
+CREATE OR REPLACE VIEW v_external_repairs_full
+WITH (security_invoker = on)
+AS
 SELECT 
   er.id,
   er.service_order_id,

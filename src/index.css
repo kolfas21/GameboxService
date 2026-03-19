@@ -90,33 +90,377 @@ body {
   }
 }
 
-/* Login Page Styles */
-.login-container {
+/* Modern Login Page Styles */
+.modern-login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0.65rem;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(125, 211, 252, 0.25), transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(147, 197, 253, 0.22), transparent 35%),
+    linear-gradient(145deg, #f6faff 0%, #eef5ff 45%, #f8fbff 100%);
+  animation: loginFadeIn 0.45s ease-out;
 }
 
-.login-card {
+.modern-login-container {
+  min-height: calc(100vh - 1.3rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.modern-login-shell {
   width: 100%;
-  max-width: 400px;
-  margin: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: none;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 1080px;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  border: 1px solid #dbe8f6;
+  background-color: #ffffff;
+  box-shadow: 0 20px 60px rgba(17, 24, 39, 0.12);
 }
 
-.login-header {
+.modern-login-grid {
+  min-height: min(700px, calc(100vh - 1.4rem));
+}
+
+.modern-login-aside {
+  padding: 1.55rem;
+  background:
+    linear-gradient(165deg, #f5f9ff 0%, #eef5ff 55%, #edf4ff 100%);
+  border-right: 1px solid #e4edf8;
+}
+
+.modern-login-brand-dot {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #60a5fa, #38bdf8);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.modern-login-eyebrow {
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.modern-login-brand {
+  color: #111827;
+  font-size: clamp(1.15rem, 1.8vw, 1.4rem);
+  font-weight: 700;
+}
+
+.modern-login-title {
+  color: #0f172a;
+  font-size: clamp(1.35rem, 2.35vw, 2rem);
+  line-height: 1.2;
+  margin-bottom: 0.72rem;
+  font-weight: 700;
+}
+
+.modern-login-subtitle {
+  color: #4b5563;
+  font-size: clamp(0.86rem, 1.3vw, 0.95rem);
+  max-width: 38ch;
+}
+
+.modern-login-stat {
+  border: 1px solid #dee9f8;
+  border-radius: 0.8rem;
+  padding: 0.56rem 0.5rem;
+  background-color: rgba(255, 255, 255, 0.85);
   text-align: center;
-  padding: 2rem 2rem 1rem;
-  border-bottom: none;
 }
 
-.login-body {
-  padding: 1rem 2rem 2rem;
+.modern-login-stat strong {
+  display: block;
+  color: #0f172a;
+  font-size: 1.05rem;
+  line-height: 1.1;
+}
+
+.modern-login-stat span {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.modern-login-features-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #0369a1;
+  margin-bottom: 0.7rem;
+}
+
+.modern-login-feature-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.modern-login-feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid #e5edf8;
+  border-radius: 0.8rem;
+  padding: 0.6rem 0.68rem;
+  color: #334155;
+  font-size: 0.84rem;
+  background-color: #ffffff;
+}
+
+.modern-login-feature-list li svg {
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.modern-login-panel-wrap {
+  padding: clamp(0.9rem, 1.8vw, 1.4rem);
+  background-color: #ffffff;
+}
+
+.modern-login-panel {
+  max-width: 430px;
+  margin-inline: auto;
+}
+
+.modern-login-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid #d9e9fa;
+  background-color: #f2f8ff;
+  color: #0369a1;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.modern-login-form-head h4 {
+  color: #111827;
+  font-weight: 700;
+  font-size: 1.55rem;
+}
+
+.modern-login-form-head p {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.modern-login-label {
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.modern-login-input-group {
+  border: 1px solid #dbe7f5;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  background-color: #f8fbff;
+}
+
+.modern-login-input-group .input-group-text {
+  border: none;
+  background-color: transparent;
+  color: #64748b;
+}
+
+.modern-login-input-group .form-control {
+  border: none;
+  background-color: transparent;
+  box-shadow: none;
+  color: #0f172a;
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+.modern-login-input-group:focus-within {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.2);
+}
+
+.modern-login-toggle {
+  cursor: pointer;
+}
+
+.modern-login-link-btn {
+  border: none;
+  background: transparent;
+  color: #0369a1;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0;
+}
+
+.modern-login-link-btn:hover {
+  color: #075985;
+}
+
+.modern-login-link-hint {
+  color: #0369a1;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.modern-login-submit {
+  border: none;
+  border-radius: 0.8rem;
+  padding: 0.64rem 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(90deg, #60a5fa, #38bdf8);
+  box-shadow: 0 12px 24px rgba(56, 189, 248, 0.24);
+}
+
+.modern-login-submit:hover:not(:disabled) {
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(56, 189, 248, 0.28);
+}
+
+.modern-login-submit:disabled {
+  opacity: 0.85;
+}
+
+.modern-login-register {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.modern-login-register span {
+  color: #0284c7;
+  font-weight: 700;
+}
+
+@keyframes loginFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 991.98px) {
+  .modern-login-grid {
+    min-height: auto;
+  }
+
+  .modern-login-aside {
+    border-right: none;
+    border-bottom: 1px solid #e4edf8;
+    padding: 1.25rem;
+  }
+
+  .modern-login-feature-list {
+    gap: 0.45rem;
+  }
+
+  .modern-login-feature-list li {
+    font-size: 0.85rem;
+    padding: 0.65rem 0.7rem;
+  }
+}
+
+@media (max-height: 860px) and (min-width: 992px) {
+  .modern-login-page {
+    padding: 0.5rem;
+  }
+
+  .modern-login-grid {
+    min-height: min(640px, calc(100vh - 1rem));
+  }
+
+  .modern-login-aside {
+    padding: 1.2rem;
+  }
+
+  .modern-login-title {
+    font-size: clamp(1.2rem, 2vw, 1.55rem);
+    margin-bottom: 0.5rem;
+  }
+
+  .modern-login-subtitle {
+    font-size: 0.82rem;
+  }
+
+  .modern-login-stats {
+    margin-bottom: 0.7rem !important;
+  }
+
+  .modern-login-feature-list li {
+    padding: 0.52rem 0.6rem;
+    font-size: 0.79rem;
+  }
+
+  .modern-login-feature-list li:nth-child(n + 5) {
+    display: none;
+  }
+
+  .modern-login-form-head h4 {
+    font-size: 1.35rem;
+  }
+
+  .modern-login-form-head p {
+    font-size: 0.85rem;
+  }
+
+  .modern-login-register {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 992px) {
+  .modern-login-aside {
+    display: none;
+  }
+
+  .modern-login-panel {
+    max-width: 460px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .modern-login-page {
+    align-items: stretch;
+    padding: 0.6rem;
+  }
+
+  .modern-login-container {
+    min-height: auto;
+  }
+
+  .modern-login-shell {
+    border-radius: 1rem;
+  }
+
+  .modern-login-aside {
+    display: none !important;
+  }
+
+  .modern-login-panel-wrap {
+    padding: 1.1rem;
+  }
+
+  .modern-login-form-head h4 {
+    font-size: 1.45rem;
+  }
 }
 
 /* Dashboard Cards */

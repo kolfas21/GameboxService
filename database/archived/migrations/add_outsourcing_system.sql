@@ -156,7 +156,8 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql
+   SET search_path = public;
 
 -- Triggers para actualizar updated_at
 DROP TRIGGER IF EXISTS update_external_workshops_updated_at ON external_workshops;
@@ -186,7 +187,9 @@ INSERT INTO external_workshops (name, phone, contact_person, address, notes) VAL
 -- ============================================
 
 -- Vista para ver reparaciones externas con información completa
-CREATE OR REPLACE VIEW v_external_repairs_full AS
+CREATE OR REPLACE VIEW v_external_repairs_full
+WITH (security_invoker = on)
+AS
 SELECT 
   er.id,
   er.service_order_id,
