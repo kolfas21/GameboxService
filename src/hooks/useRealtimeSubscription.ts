@@ -14,6 +14,20 @@ export const useRealtimeSubscription = (
   const channelRef = useRef<RealtimeChannel | null>(null)
   const callbackRef = useRef(callback)
 
+  const disconnectChannel = async () => {
+    if (!channelRef.current) return
+    const channel = channelRef.current
+    channelRef.current = null
+
+    try {
+      // removeChannel asegura limpiar el registro interno del cliente,
+      // evitando reutilizar un canal ya suscrito.
+      await supabase.removeChannel(channel)
+    } catch (error) {
+      console.error('Error desconectando canal real-time:', error)
+    }
+  }
+
   // Actualizar la referencia del callback
   useEffect(() => {
     callbackRef.current = callback
@@ -22,16 +36,15 @@ export const useRealtimeSubscription = (
   useEffect(() => {
     if (!enabled) {
       // Si está deshabilitado, desconectar
-      if (channelRef.current) {
-        channelRef.current.unsubscribe()
-        channelRef.current = null
-      }
+      void disconnectChannel()
       return
     }
 
+    const channelName = `${table}_changes_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+
     // Crear suscripción en tiempo real
     channelRef.current = supabase
-      .channel(`${table}_changes`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -60,19 +73,13 @@ export const useRealtimeSubscription = (
 
     // Cleanup al desmontar
     return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe()
-        channelRef.current = null
-      }
+      void disconnectChannel()
     }
   }, [table, enabled])
 
   // Función para desconectar manualmente
   const disconnect = () => {
-    if (channelRef.current) {
-      channelRef.current.unsubscribe()
-      channelRef.current = null
-    }
+    void disconnectChannel()
   }
 
   return { disconnect }
