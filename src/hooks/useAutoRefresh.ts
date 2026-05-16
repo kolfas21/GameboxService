@@ -11,7 +11,8 @@ export const useAutoRefresh = (
   intervalMs: number = 15000, // 15 segundos por defecto
   enabled: boolean = true
 ) => {
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  // Compatible con navegador y Node sin depender del namespace NodeJS.
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const refreshFunctionRef = useRef(refreshFunction)
 
   // Actualizar la referencia de la función cuando cambie
