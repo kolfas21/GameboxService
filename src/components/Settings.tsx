@@ -14,6 +14,7 @@ import {
 import { useCompanySettings } from '../hooks'
 import { useModal } from '../hooks/useModal'
 import { CustomModal } from './ui/CustomModal'
+import PrinterSettings from './PrinterSettings'
 import type { CompanySettings } from '../types'
 
 type LoginThemePreset = {
@@ -664,6 +665,12 @@ const Settings: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="row mb-4">
+        <div className="col-12">
+          <PrinterSettings />
         </div>
       </div>
 
