@@ -1,4 +1,5 @@
 import * as qz from 'qz-tray'
+import { supabaseConfig } from '../config/supabase'
 
 export type PrinterType = 'ticket' | 'sticker'
 
@@ -65,6 +66,9 @@ const PRINTER_KEYS: Record<PrinterType, string> = {
 
 const ESC = '\x1B'
 const GS = '\x1D'
+const QZ_SECURITY_ENDPOINT = `${supabaseConfig.url}/functions/v1/qz-security`
+
+let securityConfigured = false
 
 const formatMoney = (value?: number) =>
   new Intl.NumberFormat('es-CO', {
@@ -113,14 +117,75 @@ const buildLine = (label: string, value?: string | number) => {
   return left(`${label}: ${cleanValue}`)
 }
 
+const getQzSecurityHeaders = () => ({
+  Authorization: `Bearer ${supabaseConfig.anonKey}`,
+  apikey: supabaseConfig.anonKey,
+  'Content-Type': 'application/json'
+})
+
+export const setupQzSecurity = () => {
+  if (securityConfigured) return
+
+  qz.security.setCertificatePromise((resolve, reject) => {
+    fetch(`${QZ_SECURITY_ENDPOINT}/certificate`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        Authorization: `Bearer ${supabaseConfig.anonKey}`,
+        apikey: supabaseConfig.anonKey
+      }
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('No se encontró el certificado de QZ Tray.')
+        }
+        return response.text()
+      })
+      .then((certificate) => {
+        if (!certificate.trim()) {
+          throw new Error('No se encontró el certificado de QZ Tray.')
+        }
+        resolve(certificate)
+      })
+      .catch(reject)
+  })
+
+  qz.security.setSignatureAlgorithm('SHA512')
+  qz.security.setSignaturePromise((toSign: string) => {
+    return (resolve, reject) => {
+      fetch(`${QZ_SECURITY_ENDPOINT}/sign`, {
+        method: 'POST',
+        headers: getQzSecurityHeaders(),
+        body: JSON.stringify({ request: toSign })
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('No se pudo firmar la solicitud de impresión. Revisa la configuración QZ_PRIVATE_KEY en Supabase.')
+          }
+          return response.json()
+        })
+        .then((data) => {
+          if (!data?.signature) {
+            throw new Error('El backend no devolvió la firma de QZ Tray.')
+          }
+          resolve(data.signature)
+        })
+        .catch(reject)
+    }
+  })
+
+  securityConfigured = true
+}
+
 export const connectQzTray = async () => {
   try {
+    setupQzSecurity()
     if (qz.websocket.isActive()) return true
     await qz.websocket.connect()
     return true
   } catch (error) {
     throw new Error(
-      `No fue posible conectar con QZ Tray. Verifica que QZ Tray esté instalado, abierto y autorizado en este navegador. Detalle: ${normalizeError(error)}`
+      `QZ Tray no está abierto. Ábrelo en el computador de producción e intenta nuevamente. Detalle: ${normalizeError(error)}`
     )
   }
 }
@@ -393,6 +458,7 @@ export const printServiceSticker = async (comandaData: ServiceComandaPrintData) 
 
 export const qzPrinterService = {
   connectQzTray,
+  setupQzSecurity,
   isQzConnected,
   getPrinters,
   savePrinter,
