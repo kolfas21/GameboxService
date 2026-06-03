@@ -31,7 +31,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  DollarSign
+  DollarSign,
+  Receipt
 } from 'lucide-react'
 import type { ServiceOrder } from '../types'
 
@@ -326,6 +327,13 @@ const Dashboard: React.FC = () => {
                         </button>
                       </div>
                       <div className="col-12 col-sm-6 col-md-4 col-lg-2">
+                        <button onClick={() => navigate('manual-sales')} className="btn btn-outline-success w-100 d-flex flex-column align-items-center justify-content-center p-3 py-3" style={{minHeight: '110px'}}>
+                          <Receipt size={24} className="mb-2" />
+                          <span className="fw-semibold">Nueva Venta</span>
+                          <small className="opacity-75 text-center d-none d-sm-block">Venta manual</small>
+                        </button>
+                      </div>
+                      <div className="col-12 col-sm-6 col-md-4 col-lg-2">
                         <button onClick={() => navigate('customers')} className="btn btn-outline-primary w-100 d-flex flex-column align-items-center justify-content-center p-3 py-3" style={{minHeight: '110px'}}>
                           <Users size={24} className="mb-2" />
                           <span className="fw-semibold">Buscar Cliente</span>
@@ -471,6 +479,25 @@ const Dashboard: React.FC = () => {
                     </p>
                     <button onClick={() => navigate('customers')} className="btn btn-outline-success px-3">
                       Buscar Cliente
+                      <ArrowRight size={16} className="ms-2" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="col-lg-6">
+                <div className="card border-0 shadow-sm h-100 hover-card">
+                  <div className="card-body text-center p-3 p-md-4">
+                    <div className="mb-3">
+                      <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-2">
+                        <Receipt size={32} className="text-primary" />
+                      </div>
+                    </div>
+                    <h5 className="card-title fw-bold mb-2">Nueva Venta Manual</h5>
+                    <p className="card-text text-muted mb-3 small">
+                      Registra consolas, accesorios u otros productos sin afectar inventario
+                    </p>
+                    <button onClick={() => navigate('manual-sales')} className="btn btn-outline-primary px-3">
+                      Crear Venta
                       <ArrowRight size={16} className="ms-2" />
                     </button>
                   </div>

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react'
 import type { Customer } from '../types'
 
-export type Page = 'dashboard' | 'orders' | 'customers' | 'settings' | 'create-order' | 'warranty' | 'external-workshops' | 'users' | 'caja'
+export type Page = 'dashboard' | 'orders' | 'customers' | 'settings' | 'create-order' | 'manual-sales' | 'warranty' | 'external-workshops' | 'users' | 'caja'
 
 interface RouterContextType {
   currentPage: Page

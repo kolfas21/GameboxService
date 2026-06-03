@@ -6,6 +6,7 @@ const Dashboard = lazy(() => import('./Dashboard'))
 const ServiceQueue = lazy(() => import('./ServiceQueue'))
 const CustomerSearch = lazy(() => import('./CustomerSearch'))
 const CreateOrder = lazy(() => import('./CreateOrder'))
+const ManualSalesPage = lazy(() => import('./ManualSalesPage'))
 const WarrantySearch = lazy(() => import('./WarrantySearch'))
 const Settings = lazy(() => import('./Settings'))
 const ExternalWorkshops = lazy(() => import('./ExternalWorkshops'))
@@ -46,6 +47,8 @@ const PageRenderer: React.FC = () => {
         return <WarrantySearch />
       case 'create-order':
         return <CreateOrder />
+      case 'manual-sales':
+        return <ManualSalesPage />
       case 'external-workshops':
         return <ExternalWorkshops />
       case 'settings':
