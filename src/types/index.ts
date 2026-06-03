@@ -19,6 +19,18 @@ export type {
   ExternalRepairStatus,
   ExternalRepair,
 } from '../domain/entities/ExternalRepair'
+export type {
+  ManualSale,
+  ManualSaleItem,
+  ManualSaleItemInput,
+  ManualSaleClientInput,
+  CreateManualSaleInput,
+  ManualSalePaymentMethod,
+  ManualSaleProductType,
+  ManualSaleStatus,
+  ManualSaleWhatsappLog,
+  ManualSaleWhatsappStatus,
+} from '../domain/entities/ManualSale'
 
 export interface CreateCustomerData {
   cedula: string

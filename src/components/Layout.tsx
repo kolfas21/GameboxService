@@ -14,7 +14,8 @@ import {
   UserCheck,
   Package,
   Building,
-  DollarSign
+  DollarSign,
+  Receipt
 } from 'lucide-react'
 import logoGamebox from '../assets/logo-gamebox.png'
 
@@ -32,6 +33,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { icon: Home, label: 'Dashboard', page: 'dashboard' as const, roles: ['admin', 'receptionist', 'technician'] },
     { icon: ClipboardList, label: 'Órdenes', page: 'orders' as const, roles: ['admin', 'receptionist', 'technician'] },
     { icon: Users, label: 'Clientes', page: 'customers' as const, roles: ['admin', 'receptionist'] },
+    { icon: Receipt, label: 'Ventas', page: 'manual-sales' as const, roles: ['admin', 'receptionist'] },
     { icon: Package, label: 'Garantía', page: 'warranty' as const, roles: ['admin', 'receptionist'], requiresFeature: 'warranty_tracking' as const },
     { icon: Building, label: 'Talleres', page: 'external-workshops' as const, roles: ['admin', 'receptionist'], requiresFeature: 'outsourcing' as const },
     { icon: Users, label: 'Usuarios', page: 'users' as const, roles: ['admin'] },

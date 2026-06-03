@@ -1240,3 +1240,441 @@ img {
     display: none !important;
   }
 }
+/* Manual sales ticket */
+.manual-sale-create-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.48fr) minmax(360px, 0.82fr);
+  grid-template-areas:
+    "client payment"
+    "products summary";
+  gap: 16px;
+  align-items: start;
+}
+
+.manual-sale-create-form .card {
+  border-radius: 10px;
+  margin-bottom: 0 !important;
+}
+
+.manual-sale-create-form .card-header {
+  padding: 14px 18px 10px !important;
+}
+
+.manual-sale-create-form .card-header h5 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.manual-sale-create-form .card-body {
+  padding: 14px 18px 16px;
+}
+
+.manual-sale-create-form .form-label {
+  margin-bottom: 5px;
+  color: #111827;
+}
+
+.manual-sale-create-form .form-control,
+.manual-sale-create-form .form-select {
+  width: 100%;
+  max-width: 100%;
+  min-height: 36px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+}
+
+.manual-sale-create-form .input-group-text {
+  min-height: 36px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6b7280;
+  background: #f8fafc;
+  border-radius: 8px 0 0 8px;
+}
+
+.manual-sale-create-form .input-group .form-control {
+  border-radius: 0 8px 8px 0;
+}
+
+.manual-sale-create-form textarea.form-control {
+  min-height: 50px;
+  resize: vertical;
+}
+
+.manual-sale-main-grid {
+  display: contents;
+}
+
+.manual-sale-panel {
+  min-width: 0;
+}
+
+.manual-sale-client-section {
+  grid-area: client;
+}
+
+.manual-sale-products-column {
+  grid-area: products;
+}
+
+.manual-sale-payment-column {
+  grid-area: payment;
+}
+
+.manual-sale-summary-card {
+  grid-area: summary;
+}
+
+.manual-sale-client-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.95fr 0.95fr;
+  gap: 12px 14px;
+}
+
+.manual-sale-client-address {
+  grid-column: span 2;
+}
+
+.manual-sale-products-column,
+.manual-sale-payment-column {
+  min-width: 0;
+}
+
+.manual-sale-payment-column {
+  display: block;
+}
+
+.manual-sale-payment-column .card {
+  margin-bottom: 0 !important;
+}
+
+.manual-sale-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.manual-sale-compact-field {
+  min-width: 0;
+}
+
+.manual-sale-payment-detail {
+  grid-column: span 2;
+}
+
+.manual-sale-payment-notes {
+  grid-column: 1 / -1;
+}
+
+.manual-sale-summary-card {
+  position: static;
+}
+
+.manual-sale-summary-card .card-header {
+  padding-bottom: 6px !important;
+}
+
+.manual-sale-summary-card .card-body {
+  padding-top: 10px;
+}
+
+.manual-sale-item-row {
+  background: #fff;
+  border-color: #e5e7eb !important;
+  padding: 14px !important;
+}
+
+.manual-sale-item-grid {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(190px, 1.45fr) minmax(150px, 1fr) minmax(96px, 0.7fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.manual-sale-item-field {
+  min-width: 0;
+}
+
+.manual-sale-item-field .form-label,
+.manual-sale-compact-field .form-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.manual-sale-item-action {
+  display: flex;
+  align-items: end;
+  justify-content: stretch;
+}
+
+.manual-sale-item-action .btn {
+  min-height: 36px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.manual-sale-item-description {
+  grid-column: 1 / -1;
+}
+
+.manual-sale-item-description textarea {
+  min-height: 46px !important;
+}
+
+@media (max-width: 1399.98px) {
+  .manual-sale-item-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .manual-sale-item-description {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .manual-sale-create-form {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "client"
+      "products"
+      "payment"
+      "summary";
+  }
+
+  .manual-sale-payment-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .manual-sale-client-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .manual-sale-client-address {
+    grid-column: 1 / -1;
+  }
+
+  .manual-sale-payment-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .manual-sale-payment-detail,
+  .manual-sale-payment-notes {
+    grid-column: 1 / -1;
+  }
+
+  .manual-sale-item-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .manual-sale-item-description {
+    grid-column: 1 / -1;
+  }
+
+  .manual-sale-item-action {
+    align-items: stretch;
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .manual-sale-create-form .card-header {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+
+  .manual-sale-payment-grid,
+  .manual-sale-item-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-sale-item-description,
+  .manual-sale-item-action {
+    grid-column: auto;
+  }
+}
+
+.manual-sale-ticket {
+  width: 280px;
+  max-width: 280px;
+  margin: 0 auto;
+  color: #000;
+  border-radius: 4px;
+}
+
+.manual-sale-ticket .ticket-body {
+  font-family: 'Arial Black', 'Arial Bold', Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 900;
+  padding: 16px;
+}
+
+.manual-sale-ticket .ticket-header h2 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 2px;
+}
+
+.manual-sale-ticket .ticket-logo {
+  width: 180px;
+  height: 72px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 8px;
+}
+
+.manual-sale-ticket .ticket-separator {
+  border-top: 1px dashed #ccc;
+  margin: 9px 0;
+}
+
+.manual-sale-ticket .ticket-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.manual-sale-ticket .ticket-row span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.manual-sale-ticket .ticket-row strong,
+.manual-sale-ticket .ticket-row span:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.manual-sale-ticket .ticket-item {
+  margin-bottom: 10px;
+}
+
+.manual-sale-ticket .ticket-muted {
+  color: #222;
+  font-size: 10px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+}
+
+.manual-sale-ticket .ticket-total {
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.manual-sale-ticket .ticket-observations {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.manual-sale-ticket .ticket-footer {
+  text-align: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #000;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.manual-sale-ticket-modal {
+  z-index: 1060;
+}
+
+.manual-sale-ticket-modal .modal-content {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.manual-sale-ticket-dialog {
+  max-width: 560px;
+  max-height: calc(100vh - 24px);
+}
+
+.manual-sale-ticket-modal-header {
+  background: linear-gradient(135deg, #13c5df 0%, #11b8d4 100%);
+  color: #fff;
+  padding: 16px 20px;
+}
+
+.manual-sale-ticket-modal-header .modal-title {
+  font-size: 1.05rem;
+}
+
+.manual-sale-ticket-modal .modal-backdrop {
+  z-index: 0;
+}
+
+.manual-sale-ticket-modal .modal-dialog {
+  z-index: 1;
+}
+
+.manual-sale-ticket-modal .modal-body {
+  padding: 12px 14px 14px;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+}
+
+.manual-sale-ticket-preview {
+  min-height: auto;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+.manual-sale-ticket-preview .manual-sale-ticket {
+  box-shadow: none !important;
+  border: 1px solid #dee2e6 !important;
+  flex: 0 0 auto;
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .manual-sale-ticket,
+  .manual-sale-ticket * {
+    visibility: visible !important;
+  }
+
+  .manual-sale-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    max-width: 80mm;
+    margin: 0;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+
+  .manual-sale-ticket .card-body {
+    padding: 4mm !important;
+  }
+
+  .sale-detail-actions,
+  .manual-sale-ticket-modal .modal-header,
+  .manual-sale-ticket-modal .modal-footer,
+  header,
+  nav,
+  button {
+    display: none !important;
+  }
+
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}
