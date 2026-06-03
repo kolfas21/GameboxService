@@ -45,6 +45,10 @@ const paymentLabels: Record<ManualSalePaymentMethod, string> = {
 
 const getTodayString = () => new Date().toISOString().slice(0, 10)
 
+const defaultWarrantyObservations = 'Daños ocasionados por caídas, golpes, rayones, humedad, líquidos, sulfatación, polvo excesivo, presencia de insectos, recalentamiento por mala ventilación, rayos, descargas eléctricas, bajones o subidas de voltaje, uso de cargadores o cables no originales, conexiones inadecuadas, mala instalación, manipulación interna, apertura del equipo por terceros, reparaciones no autorizadas, modificación de software, desbloqueos, baneos de cuentas, pérdida de información, daños en juegos digitales, controles, cables, accesorios o partes.'
+
+const getWarrantyTerms = (sale: ManualSale) => sale.observations || defaultWarrantyObservations
+
 const calculateWarrantyEndDate = (startDate: string, months: number) => {
   const base = new Date(`${startDate || getTodayString()}T00:00:00`)
   base.setMonth(base.getMonth() + months)
@@ -77,7 +81,7 @@ const initialForm: CreateManualSaleInput = {
   warranty_end_date: calculateWarrantyEndDate(initialWarrantyStartDate, 1),
   payment_method: 'efectivo',
   payment_detail: '',
-  observations: '',
+  observations: defaultWarrantyObservations,
 }
 
 const formatMoney = (value: number | string | null | undefined) =>
@@ -102,6 +106,16 @@ const formatDateTime = (value?: string | null) => {
   })
 }
 
+const formatDateOnly = (value?: string | null) => {
+  if (!value) return '—'
+  const [year, month, day] = value.includes('T')
+    ? new Date(value).toISOString().slice(0, 10).split('-')
+    : value.split('-')
+
+  if (!year || !month || !day) return value
+  return `${day}/${month}/${year}`
+}
+
 const ManualSalesPage: React.FC = () => {
   const { settings } = useCompanySettings()
   const displayLogo = settings?.logo_url || logoGamebox
@@ -117,7 +131,7 @@ const ManualSalesPage: React.FC = () => {
   const [cancelReason, setCancelReason] = useState('')
   const [sendTicketWhatsapp, setSendTicketWhatsapp] = useState(false)
   const [sendingWhatsappId, setSendingWhatsappId] = useState<string | null>(null)
-  const [warrantyMonths, setWarrantyMonths] = useState(1)
+  const [warrantyMonths, setWarrantyMonths] = useState('1')
   const [showTicketModal, setShowTicketModal] = useState(false)
 
   const filteredSales = useMemo(() => {
@@ -165,7 +179,7 @@ const ManualSalesPage: React.FC = () => {
 
   const handleWarrantyDuration = (months: number) => {
     const normalizedMonths = Number.isFinite(months) && months > 0 ? months : 0
-    setWarrantyMonths(normalizedMonths)
+    setWarrantyMonths(normalizedMonths > 0 ? String(normalizedMonths) : '')
     setForm(prev => ({
       ...prev,
       warranty_days: normalizedMonths * 30,
@@ -176,10 +190,10 @@ const ManualSalesPage: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     try {
-      const sale = await createSale({ ...form, payment_detail: '' })
+      const sale = await createSale({ ...form, payment_detail: '', observations: defaultWarrantyObservations })
       setSelectedSale(sale)
       setForm(initialForm)
-      setWarrantyMonths(1)
+      setWarrantyMonths('1')
       setView('detail')
       setShowTicketModal(true)
       showSuccess('Venta registrada', `Factura ${sale.invoice_number} creada correctamente.`)
@@ -463,15 +477,27 @@ const ManualSalesPage: React.FC = () => {
                 <div className="manual-sale-payment-grid">
                   <div className="manual-sale-compact-field">
                     <label className="form-label small fw-semibold">Inicio de garantía</label>
-                    <input type="date" className="form-control" value={form.warranty_start_date || ''} readOnly />
+                    <input type="text" className="form-control" value={formatDateOnly(form.warranty_start_date)} readOnly />
                   </div>
                   <div className="manual-sale-compact-field">
                     <label className="form-label small fw-semibold">Meses de garantía</label>
-                    <input type="number" min="0" className="form-control" value={warrantyMonths} onChange={e => handleWarrantyDuration(Number(e.target.value))} />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      className="form-control"
+                      placeholder="Meses"
+                      value={warrantyMonths}
+                      onFocus={e => e.currentTarget.select()}
+                      onChange={e => {
+                        const value = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+                        setWarrantyMonths(value)
+                        handleWarrantyDuration(Number(value))
+                      }}
+                    />
                   </div>
                   <div className="manual-sale-compact-field">
                     <label className="form-label small fw-semibold">Fin de garantía</label>
-                    <input type="date" className="form-control" value={form.warranty_end_date || ''} readOnly />
+                    <input type="text" className="form-control" value={formatDateOnly(form.warranty_end_date)} readOnly />
                   </div>
                   <div className="manual-sale-compact-field">
                     <label className="form-label small fw-semibold">
@@ -482,10 +508,6 @@ const ManualSalesPage: React.FC = () => {
                         <option key={value} value={value}>{label}</option>
                       ))}
                     </select>
-                  </div>
-                  <div className="manual-sale-compact-field manual-sale-payment-notes">
-                    <label className="form-label small fw-semibold">Observaciones</label>
-                    <textarea className="form-control" rows={2} value={form.observations || ''} onChange={e => setForm(prev => ({ ...prev, observations: e.target.value }))} />
                   </div>
                 </div>
               </Section>
@@ -931,6 +953,15 @@ const buildSaleTicketPrintHtml = ({
             margin-top: 4mm;
             font-size: 9px;
           }
+          .terms {
+            margin-top: 1mm;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 8.5px;
+            font-weight: 700;
+            line-height: 1.25;
+            text-align: justify;
+            overflow-wrap: break-word;
+          }
           @media print {
             html, body {
               width: 80mm;
@@ -974,9 +1005,10 @@ const buildSaleTicketPrintHtml = ({
             <div class="ticket-row"><span>Pago</span><strong>${escapeHtml(paymentLabels[sale.payment_method])}</strong></div>
           </div>
           <div class="section">
-            <div class="ticket-row"><span>Garantía inicia</span><strong>${escapeHtml(sale.warranty_start_date || '—')}</strong></div>
-            <div class="ticket-row"><span>Garantía final</span><strong>${escapeHtml(sale.warranty_end_date || '—')}</strong></div>
-            ${sale.observations ? `<div style="margin-top:2mm;">Obs: ${escapeHtml(sale.observations)}</div>` : ''}
+            <div class="ticket-row"><span>Garantía inicia</span><strong>${escapeHtml(formatDateOnly(sale.warranty_start_date))}</strong></div>
+            <div class="ticket-row"><span>Garantía final</span><strong>${escapeHtml(formatDateOnly(sale.warranty_end_date))}</strong></div>
+            <div style="margin-top:2mm;"><strong>TÉRMINOS DE GARANTÍA:</strong></div>
+            <div class="terms">${escapeHtml(getWarrantyTerms(sale))}</div>
           </div>
           <div class="footer">CONSERVE ESTE COMPROBANTE</div>
         </div>
@@ -1032,9 +1064,12 @@ const Ticket: React.FC<{
       <div className="ticket-row ticket-total"><span>Total pagado</span><strong>{formatMoney(sale.total)}</strong></div>
       <div className="ticket-row"><span>Pago</span><strong>{paymentLabels[sale.payment_method]}</strong></div>
       <div className="ticket-separator" />
-      <div className="ticket-row"><span>Garantía inicia</span><strong>{sale.warranty_start_date || '—'}</strong></div>
-      <div className="ticket-row"><span>Garantía final</span><strong>{sale.warranty_end_date || '—'}</strong></div>
-      {sale.observations && <div className="ticket-observations">Obs: {sale.observations}</div>}
+      <div className="ticket-row"><span>Garantía inicia</span><strong>{formatDateOnly(sale.warranty_start_date)}</strong></div>
+      <div className="ticket-row"><span>Garantía final</span><strong>{formatDateOnly(sale.warranty_end_date)}</strong></div>
+      <div className="ticket-observations">
+        <strong>TÉRMINOS DE GARANTÍA:</strong>
+        <div>{getWarrantyTerms(sale)}</div>
+      </div>
       <div className="ticket-separator" />
       <div className="ticket-footer">CONSERVE ESTE COMPROBANTE</div>
     </div>
