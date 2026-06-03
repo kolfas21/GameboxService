@@ -82,6 +82,11 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
   }
 
   const handlePrint = () => {
+    if (Date.now() >= 0) {
+      void handleQzPrint()
+      return
+    }
+
     const title = viewType === 'comanda' ? 'Comanda' : 'Sticker'
     const printWindow = window.open('', '_blank', 'width=600,height=800')
     

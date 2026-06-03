@@ -129,6 +129,11 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
   }
 
   const handlePrintComanda = () => {
+    if (Date.now() >= 0) {
+      void handleQzPrintComanda()
+      return
+    }
+
     const printWindow = window.open('', '_blank', 'width=600,height=800')
     
     if (printWindow) {
@@ -277,6 +282,11 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
   }
 
   const handlePrintStickers = () => {
+    if (Date.now() >= 0) {
+      void handleQzPrintStickers()
+      return
+    }
+
     const printWindow = window.open('', '_blank', 'width=600,height=800')
     
     if (printWindow) {
