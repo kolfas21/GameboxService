@@ -6,6 +6,8 @@ import { useImageToBase64 } from '../hooks'
 import { useCompanySettings } from '../hooks'
 import { formatDateForPrint, getStatusDisplayName } from '../utils'
 import { useAuth } from '../contexts/AuthContext'
+import { CustomModal } from './ui/CustomModal'
+import { printServiceComanda, printServiceSticker } from '../services/qzPrinterService'
 
 interface ComandaPreviewProps {
   order: ServiceOrder
@@ -15,6 +17,8 @@ interface ComandaPreviewProps {
 
 const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClose }) => {
   const [viewType, setViewType] = useState<'comanda' | 'sticker'>('comanda')
+  const [printing, setPrinting] = useState(false)
+  const [printError, setPrintError] = useState('')
   const { user } = useAuth()
   const { settings } = useCompanySettings()
   
@@ -33,6 +37,49 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
   const logoForPreview = displayLogo.includes('supabase') 
     ? `${displayLogo.split('?')[0]}?t=${Date.now()}` 
     : displayLogo
+
+  const handleQzPrint = async () => {
+    setPrinting(true)
+    setPrintError('')
+
+    try {
+      const receivedByName =
+        order.received_by?.full_name ||
+        user?.full_name ||
+        order.received_by?.email?.split('@')[0] ||
+        user?.email?.split('@')[0] ||
+        'Recepcionista'
+
+      const printData = {
+        orderNumber: order.order_number,
+        createdAt: order.created_at,
+        branchName,
+        branchPhone,
+        receivedBy: receivedByName,
+        clientName: customer.full_name,
+        clientPhone: customer.phone,
+        deviceType: order.device_type,
+        deviceBrand: order.device_brand,
+        deviceModel: order.device_model,
+        serialNumber: order.serial_number,
+        problemDescription: order.problem_description,
+        observations: order.observations,
+        status: getStatusDisplayName(order.status),
+        completedBy: order.completed_by?.full_name || order.completed_by?.email?.split('@')[0],
+        completionNotes: order.completion_notes
+      }
+
+      if (viewType === 'sticker') {
+        await printServiceSticker(printData)
+      } else {
+        await printServiceComanda(printData)
+      }
+    } catch (error) {
+      setPrintError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setPrinting(false)
+    }
+  }
 
   const handlePrint = () => {
     const title = viewType === 'comanda' ? 'Comanda' : 'Sticker'
@@ -287,6 +334,8 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
       }, 1000)
     }
   }
+
+  void handlePrint
 
   const handleDownloadPDF = () => {
     const title = viewType === 'comanda' ? 'Comanda' : 'Sticker'
@@ -749,10 +798,11 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
               <div className="d-flex gap-2 justify-content-center">
                 <button
                   className="btn btn-primary"
-                  onClick={handlePrint}
+                  onClick={handleQzPrint}
+                  disabled={printing}
                 >
                   <Printer size={16} className="me-1" />
-                  Imprimir {viewType === 'comanda' ? 'Comanda' : 'Sticker'}
+                  {printing ? 'Enviando...' : `Imprimir ${viewType === 'comanda' ? 'Comanda' : 'Sticker'}`}
                 </button>
                 
                 <button
@@ -775,6 +825,14 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
           </div>
         </div>
       </div>
+      <CustomModal
+        isOpen={Boolean(printError)}
+        onClose={() => setPrintError('')}
+        onConfirm={() => setPrintError('')}
+        title="Error de impresión"
+        message={printError}
+        type="error"
+      />
     </>
   )
 }

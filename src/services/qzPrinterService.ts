@@ -39,6 +39,25 @@ export interface StickerPrintData {
   price?: number
 }
 
+export interface ServiceComandaPrintData {
+  orderNumber: string
+  createdAt?: string | Date
+  branchName?: string
+  branchPhone?: string
+  receivedBy?: string
+  clientName: string
+  clientPhone?: string | null
+  deviceType?: string
+  deviceBrand?: string
+  deviceModel?: string
+  serialNumber?: string | null
+  problemDescription?: string
+  observations?: string | null
+  status?: string
+  completedBy?: string
+  completionNotes?: string | null
+}
+
 const PRINTER_KEYS: Record<PrinterType, string> = {
   ticket: 'gamebox_ticket_printer',
   sticker: 'gamebox_sticker_printer'
@@ -284,6 +303,65 @@ export const printSticker = async (stickerData: StickerPrintData) => {
   ].filter(Boolean))
 }
 
+export const printServiceComanda = async (comandaData: ServiceComandaPrintData) => {
+  const printerName = await ensureConfiguredPrinter('ticket')
+
+  const data: string[] = [
+    `${ESC}@`,
+    center('GAMEBOX'),
+    center('COMANDA DE SERVICIO'),
+    separator(),
+    buildLine('Orden', comandaData.orderNumber),
+    buildLine('Fecha', formatDateTime(comandaData.createdAt)),
+    buildLine('Sede', comandaData.branchName || ''),
+    buildLine('Telefono', comandaData.branchPhone || ''),
+    comandaData.receivedBy ? buildLine('Recibido por', comandaData.receivedBy) : '',
+    separator(),
+    buildLine('Cliente', comandaData.clientName),
+    buildLine('Tel', comandaData.clientPhone || ''),
+    separator(),
+    left('DISPOSITIVO INGRESADO:'),
+    buildLine('Tipo', comandaData.deviceType || ''),
+    buildLine('Marca', comandaData.deviceBrand || ''),
+    buildLine('Modelo', comandaData.deviceModel || ''),
+    buildLine('Serie', comandaData.serialNumber || 'N/A'),
+    separator(),
+    left('PROBLEMA:'),
+    left(comandaData.problemDescription || ''),
+    comandaData.observations ? left(`OBS: ${comandaData.observations}`) : '',
+    separator(),
+    comandaData.status ? buildLine('Estado', comandaData.status) : '',
+    comandaData.completedBy ? buildLine('Finalizado por', comandaData.completedBy) : '',
+    comandaData.completionNotes ? left(`Trabajo realizado: ${comandaData.completionNotes}`) : '',
+    separator(),
+    center('CONSERVE ESTE COMPROBANTE'),
+    '\n\n',
+    cut()
+  ].filter(Boolean)
+
+  await printRaw(printerName, data)
+}
+
+export const printServiceSticker = async (comandaData: ServiceComandaPrintData) => {
+  const printerName = await ensureConfiguredPrinter('sticker')
+
+  await printRaw(printerName, [
+    `${ESC}@`,
+    center('GAMEBOX'),
+    center('STICKER DE SERVICIO'),
+    separator(),
+    buildLine('Orden', comandaData.orderNumber),
+    buildLine('Cliente', comandaData.clientName),
+    buildLine('Tel', comandaData.clientPhone || ''),
+    buildLine('Serie', comandaData.serialNumber || 'N/A'),
+    separator(),
+    left('PROBLEMA:'),
+    left((comandaData.problemDescription || '').slice(0, 180)),
+    '\n\n',
+    cut()
+  ])
+}
+
 export const qzPrinterService = {
   connectQzTray,
   isQzConnected,
@@ -293,5 +371,7 @@ export const qzPrinterService = {
   printTestTicket,
   printTestSticker,
   printTicket,
-  printSticker
+  printSticker,
+  printServiceComanda,
+  printServiceSticker
 }

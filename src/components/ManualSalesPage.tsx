@@ -19,6 +19,7 @@ import { useManualSales } from '../hooks/useManualSales'
 import { useModal } from '../hooks/useModal'
 import { CustomModal } from './ui/CustomModal'
 import logoGamebox from '../assets/logo-gamebox.png'
+import { printTicket as printTicketToQz } from '../services/qzPrinterService'
 import type {
   CreateManualSaleInput,
   ManualSale,
@@ -223,7 +224,7 @@ const ManualSalesPage: React.FC = () => {
     )
   }
 
-  const printTicket = () => {
+  const saveTicketPdf = () => {
     if (!selectedSale) return
 
     const printWindow = window.open('', '_blank', 'width=420,height=800')
@@ -246,6 +247,38 @@ const ManualSalesPage: React.FC = () => {
       printWindow.print()
       printWindow.close()
     }, 500)
+  }
+
+  const printTicket = async () => {
+    if (!selectedSale) return
+
+    try {
+      await printTicketToQz({
+        invoiceNumber: selectedSale.invoice_number,
+        date: selectedSale.sale_date,
+        sellerName: selectedSale.user?.full_name || selectedSale.user?.email?.split('@')[0] || 'Usuario',
+        clientName: selectedSale.client_name,
+        clientDocument: selectedSale.client_document,
+        clientPhone: selectedSale.client_phone,
+        paymentMethod: paymentLabels[selectedSale.payment_method],
+        subtotal: selectedSale.subtotal,
+        discount: selectedSale.discount_total,
+        total: selectedSale.total,
+        warrantyStartDate: selectedSale.warranty_start_date || undefined,
+        warrantyEndDate: selectedSale.warranty_end_date || undefined,
+        items: (selectedSale.items || []).map(item => ({
+          name: item.product_name,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          discount: item.discount,
+          subtotal: item.subtotal,
+          serialNumber: item.serial_number || undefined,
+          type: productTypeLabels[item.product_type],
+        })),
+      })
+    } catch (err) {
+      showError('No se pudo imprimir', err instanceof Error ? err.message : 'Error desconocido al imprimir con QZ Tray.')
+    }
   }
 
   const openDetail = (sale: ManualSale) => {
@@ -596,6 +629,7 @@ const ManualSalesPage: React.FC = () => {
           logoUrl={logoForPreview}
           onClose={() => setShowTicketModal(false)}
           onPrint={printTicket}
+          onSavePdf={saveTicketPdf}
         />
       )}
     </div>
@@ -1016,7 +1050,8 @@ const TicketModal: React.FC<{
   logoUrl: string
   onClose: () => void
   onPrint: () => void
-}> = ({ sale, companyName, companyNit, companyAddress, companyPhone, logoUrl, onClose, onPrint }) => (
+  onSavePdf: () => void
+}> = ({ sale, companyName, companyNit, companyAddress, companyPhone, logoUrl, onClose, onPrint, onSavePdf }) => (
   <div className="modal show d-block manual-sale-ticket-modal" tabIndex={-1} role="dialog">
     <div className="modal-backdrop show" onClick={onClose}></div>
     <div className="modal-dialog modal-dialog-centered manual-sale-ticket-dialog" role="document">
@@ -1054,7 +1089,7 @@ const TicketModal: React.FC<{
               <Printer size={16} className="me-1" />
               Imprimir Ticket
             </button>
-            <button type="button" className="btn btn-success" onClick={onPrint}>
+            <button type="button" className="btn btn-success" onClick={onSavePdf}>
               <Download size={16} className="me-1" />
               Guardar PDF
             </button>
