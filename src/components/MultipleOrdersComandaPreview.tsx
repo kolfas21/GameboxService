@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { FileText, Printer, Download, X, Tag, Package } from 'lucide-react'
 import type { ServiceOrder, Customer } from '../types'
 import logoGamebox from '../assets/logo-gamebox.png'
@@ -7,7 +7,7 @@ import { useCompanySettings } from '../hooks'
 import { formatDateForPrint, getStatusDisplayName } from '../utils'
 import { useAuth } from '../contexts/AuthContext'
 import { CustomModal } from './ui/CustomModal'
-import { printServiceComanda, printServiceSticker } from '../services/qzPrinterService'
+import { printStickerHtml, printTicketHtml } from '../services/qzPrinterService'
 
 interface MultipleOrdersComandaPreviewProps {
   orders: ServiceOrder[]
@@ -23,6 +23,7 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
   const [viewType, setViewType] = useState<'comanda' | 'individual-stickers'>('comanda')
   const [printing, setPrinting] = useState(false)
   const [printError, setPrintError] = useState('')
+  const previewRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
   const { settings } = useCompanySettings()
   
@@ -74,38 +75,52 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
     ordersCount: orders.length 
   })
 
-  const getPrintData = (order: ServiceOrder) => ({
-    orderNumber: order.order_number,
-    createdAt: order.created_at,
-    branchName,
-    branchPhone,
-    receivedBy:
-      order.received_by?.full_name ||
-      user?.full_name ||
-      order.received_by?.email?.split('@')[0] ||
-      user?.email?.split('@')[0] ||
-      'Recepcionista',
-    clientName: customer.full_name,
-    clientPhone: customer.phone,
-    deviceType: order.device_type,
-    deviceBrand: order.device_brand,
-    deviceModel: order.device_model,
-    serialNumber: order.serial_number,
-    problemDescription: order.problem_description,
-    observations: order.observations,
-    status: getStatusDisplayName(order.status),
-    completedBy: order.completed_by?.full_name || order.completed_by?.email?.split('@')[0],
-    completionNotes: order.completion_notes
-  })
+  const buildPreviewHtml = (content: string, mode: 'ticket' | 'sticker') => `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          * { box-sizing: border-box; }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white;
+            font-family: Arial Black, Arial Bold, Arial, sans-serif;
+          }
+          body { width: ${mode === 'sticker' ? '7cm' : '80mm'}; }
+          .bg-white { background: #fff; }
+          .border { border: 1px solid #dee2e6; }
+          .rounded { border-radius: 0.375rem; }
+          .p-2 { padding: 0.5rem; }
+          .p-3 { padding: 1rem; }
+          .mb-2 { margin-bottom: 0.5rem; }
+          .mb-3 { margin-bottom: 1rem; }
+          .pb-2 { padding-bottom: 0.5rem; }
+          .text-center { text-align: center; }
+          .mx-auto { margin-left: auto; margin-right: auto; }
+          img { max-width: 100%; }
+          @page {
+            margin: 0;
+            size: ${mode === 'sticker' ? '7cm 5cm' : '80mm auto'};
+          }
+        </style>
+      </head>
+      <body>${content}</body>
+    </html>
+  `
 
   const handleQzPrintComanda = async () => {
     setPrinting(true)
     setPrintError('')
 
     try {
-      for (const order of orders) {
-        await printServiceComanda(getPrintData(order))
+      const previewContent = previewRef.current?.querySelector('.bg-white')?.outerHTML
+      if (!previewContent || viewType !== 'comanda') {
+        throw new Error('Selecciona la pestaña Comanda Completa antes de imprimir.')
       }
+
+      await printTicketHtml(buildPreviewHtml(previewContent, 'ticket'))
     } catch (error) {
       setPrintError(error instanceof Error ? error.message : String(error))
     } finally {
@@ -118,9 +133,15 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
     setPrintError('')
 
     try {
-      for (const order of orders) {
-        await printServiceSticker(getPrintData(order))
+      const stickerContent = Array.from(previewRef.current?.querySelectorAll('.bg-white') || [])
+        .map(element => element.outerHTML)
+        .join('<div style="page-break-after: always;"></div>')
+
+      if (!stickerContent || viewType !== 'individual-stickers') {
+        throw new Error('Selecciona la pestaña Stickers Individuales antes de imprimir.')
       }
+
+      await printStickerHtml(buildPreviewHtml(stickerContent, 'sticker'))
     } catch (error) {
       setPrintError(error instanceof Error ? error.message : String(error))
     } finally {
@@ -766,6 +787,7 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
               </div>
 
               {/* Preview Area */}
+              <div ref={previewRef}>
               {viewType === 'individual-stickers' ? (
                 // Vista previa de stickers individuales optimizados
                 <div className="bg-light p-3 rounded mb-3" style={{ 
@@ -881,6 +903,7 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
                   </div>
                 </div>
               )}
+              </div>
               
               {/* Action Buttons */}
               <div className="d-flex gap-2 justify-content-center flex-wrap">

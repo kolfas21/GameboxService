@@ -157,10 +157,7 @@ const ensureConfiguredPrinter = async (type: PrinterType) => {
       : 'No hay impresora de stickers configurada para este computador.')
   }
 
-  const printers = await getPrinters()
-  if (!printers.includes(printerName)) {
-    throw new Error(`La impresora guardada "${printerName}" ya no existe en este PC. Busca impresoras y guarda una nueva configuración.`)
-  }
+  await connectQzTray()
 
   return printerName
 }
@@ -176,6 +173,38 @@ const printRaw = async (printerName: string, data: string[]) => {
   } catch (error) {
     throw new Error(`No fue posible imprimir en "${printerName}". Detalle: ${normalizeError(error)}`)
   }
+}
+
+const printHtml = async (printerName: string, html: string, jobName: string) => {
+  try {
+    const config = qz.configs.create(printerName, {
+      jobName,
+      units: 'mm',
+      margins: 0,
+      size: {
+        width: 80
+      }
+    })
+
+    await qz.print(config as any, [{
+      type: 'pixel',
+      format: 'html',
+      flavor: 'plain',
+      data: html
+    }])
+  } catch (error) {
+    throw new Error(`No fue posible imprimir en "${printerName}". Detalle: ${normalizeError(error)}`)
+  }
+}
+
+export const printTicketHtml = async (html: string) => {
+  const printerName = await ensureConfiguredPrinter('ticket')
+  await printHtml(printerName, html, 'GameBox Ticket')
+}
+
+export const printStickerHtml = async (html: string) => {
+  const printerName = await ensureConfiguredPrinter('sticker')
+  await printHtml(printerName, html, 'GameBox Sticker')
 }
 
 export const printTestTicket = async () => {
@@ -370,6 +399,8 @@ export const qzPrinterService = {
   getSavedPrinter,
   printTestTicket,
   printTestSticker,
+  printTicketHtml,
+  printStickerHtml,
   printTicket,
   printSticker,
   printServiceComanda,

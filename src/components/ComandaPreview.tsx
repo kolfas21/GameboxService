@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { FileText, Printer, Download, X, Tag } from 'lucide-react'
 import type { ServiceOrder, Customer } from '../types'
 import logoGamebox from '../assets/logo-gamebox.png'
@@ -7,7 +7,7 @@ import { useCompanySettings } from '../hooks'
 import { formatDateForPrint, getStatusDisplayName } from '../utils'
 import { useAuth } from '../contexts/AuthContext'
 import { CustomModal } from './ui/CustomModal'
-import { printServiceComanda, printServiceSticker } from '../services/qzPrinterService'
+import { printStickerHtml, printTicketHtml } from '../services/qzPrinterService'
 
 interface ComandaPreviewProps {
   order: ServiceOrder
@@ -19,6 +19,7 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
   const [viewType, setViewType] = useState<'comanda' | 'sticker'>('comanda')
   const [printing, setPrinting] = useState(false)
   const [printError, setPrintError] = useState('')
+  const previewRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
   const { settings } = useCompanySettings()
   
@@ -43,36 +44,53 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
     setPrintError('')
 
     try {
-      const receivedByName =
-        order.received_by?.full_name ||
-        user?.full_name ||
-        order.received_by?.email?.split('@')[0] ||
-        user?.email?.split('@')[0] ||
-        'Recepcionista'
-
-      const printData = {
-        orderNumber: order.order_number,
-        createdAt: order.created_at,
-        branchName,
-        branchPhone,
-        receivedBy: receivedByName,
-        clientName: customer.full_name,
-        clientPhone: customer.phone,
-        deviceType: order.device_type,
-        deviceBrand: order.device_brand,
-        deviceModel: order.device_model,
-        serialNumber: order.serial_number,
-        problemDescription: order.problem_description,
-        observations: order.observations,
-        status: getStatusDisplayName(order.status),
-        completedBy: order.completed_by?.full_name || order.completed_by?.email?.split('@')[0],
-        completionNotes: order.completion_notes
+      const previewContent = previewRef.current?.querySelector('.bg-white')?.outerHTML
+      if (!previewContent) {
+        throw new Error('No se pudo preparar la vista previa para impresión.')
       }
 
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              * { box-sizing: border-box; }
+              html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white;
+                font-family: Arial Black, Arial Bold, Arial, sans-serif;
+              }
+              body {
+                width: ${viewType === 'sticker' ? '7cm' : '80mm'};
+              }
+              .bg-white { background: #fff; }
+              .border { border: 1px solid #dee2e6; }
+              .rounded { border-radius: 0.375rem; }
+              .p-2 { padding: 0.5rem; }
+              .p-3 { padding: 1rem; }
+              .mb-2 { margin-bottom: 0.5rem; }
+              .mb-3 { margin-bottom: 1rem; }
+              .pb-2 { padding-bottom: 0.5rem; }
+              .text-center { text-align: center; }
+              .mx-auto { margin-left: auto; margin-right: auto; }
+              .d-inline-block { display: inline-block; }
+              img { max-width: 100%; }
+              @page {
+                margin: 0;
+                size: ${viewType === 'sticker' ? '7cm 5cm' : '80mm auto'};
+              }
+            </style>
+          </head>
+          <body>${previewContent}</body>
+        </html>
+      `
+
       if (viewType === 'sticker') {
-        await printServiceSticker(printData)
+        await printStickerHtml(html)
       } else {
-        await printServiceComanda(printData)
+        await printTicketHtml(html)
       }
     } catch (error) {
       setPrintError(error instanceof Error ? error.message : String(error))
@@ -668,6 +686,7 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
               </div>
 
               {/* Preview Area */}
+              <div ref={previewRef}>
               {viewType === 'sticker' ? (
                 // Vista previa con imagen para sticker optimizado 7x5cm
                 <div className="bg-light p-3 rounded mb-3 text-center" style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -798,6 +817,7 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
                   </div>
                 </div>
               )}
+              </div>
               
               {/* Action Buttons */}
               <div className="d-flex gap-2 justify-content-center">
