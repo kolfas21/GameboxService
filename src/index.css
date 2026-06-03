@@ -1573,6 +1573,18 @@ img {
 .manual-sale-ticket .ticket-observations {
   margin-top: 8px;
   overflow-wrap: anywhere;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: justify;
+}
+
+.manual-sale-ticket .ticket-observations strong {
+  display: block;
+  font-family: 'Arial Black', 'Arial Bold', Arial, sans-serif;
+  font-size: 9px;
+  margin-bottom: 2px;
 }
 
 .manual-sale-ticket .ticket-footer {
