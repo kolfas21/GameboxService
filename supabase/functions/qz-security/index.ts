@@ -1,13 +1,28 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+const allowedOrigins = [
+  'https://gameboxservice.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+]
+
+const getCorsHeaders = (req: Request) => {
+  const origin = req.headers.get('origin') ?? ''
+  const allowedOrigin = allowedOrigins.includes(origin)
+    ? origin
+    : 'https://gameboxservice.onrender.com'
+
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+  }
 }
 
-const json = (body: unknown, status = 200) =>
+const json = (req: Request, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
   })
 
 const normalizePem = (value: string | undefined) =>
@@ -59,7 +74,7 @@ const signRequest = async (request: string, privateKeyPem: string) => {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { status: 204, headers: getCorsHeaders(req) })
   }
 
   try {
@@ -71,19 +86,19 @@ Deno.serve(async (req) => {
       if (!certificate) {
         return new Response('No se encontró el certificado de QZ Tray.', {
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+          headers: { ...getCorsHeaders(req), 'Content-Type': 'text/plain' },
         })
       }
 
       return new Response(certificate, {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'text/plain' },
       })
     }
 
     if (req.method === 'POST' && url.pathname.endsWith('/sign')) {
       if (!privateKey) {
-        return json({
+        return json(req, {
           ok: false,
           message: 'No se encontró QZ_PRIVATE_KEY.',
         }, 500)
@@ -93,7 +108,7 @@ Deno.serve(async (req) => {
       const requestToSign = typeof body?.request === 'string' ? body.request : ''
 
       if (!requestToSign) {
-        return json({
+        return json(req, {
           ok: false,
           message: 'Falta el texto a firmar.',
         }, 400)
@@ -101,18 +116,18 @@ Deno.serve(async (req) => {
 
       const signature = await signRequest(requestToSign, privateKey)
 
-      return json({
+      return json(req, {
         ok: true,
         signature,
       })
     }
 
-    return json({
+    return json(req, {
       ok: false,
       message: 'Ruta QZ no encontrada.',
     }, 404)
   } catch (error) {
-    return json({
+    return json(req, {
       ok: false,
       message: error instanceof Error
         ? error.message

@@ -39,7 +39,13 @@ const isReady = await checkPrinterReady('ticket' | 'sticker', user?.sede)
 - En su lugar, mostrará un `PrintFallbackModal` amigable, indicando que ocurrió un problema de certificados/firma y ofrecerá botones de acción inmediata:
   - **Imprimir manualmente:** Acciona la venta de navegador (fallback seguro).
   - **Deshabilitar QZ para esta sucursal:** Apaga el interruptor `qzEnabled` localmente, y para la siguiente vez ya no tratará de enviar datos a QZ, yéndose directo a impresión manual.
-- **Importante:** No intentes solucionar el problema de certificados agregando llaves privadas quemadas en el frontend. Si se requiere confiar en la firma, este proceso debe ser realizado a nivel de infraestructura/máquina local, pero la aplicación nunca debe bloquearse si esta firma falla.
+
+## Configuración del Backend para QZ (Supabase Edge Functions)
+Para que QZ Tray confíe en la aplicación y suprima las advertencias de seguridad de forma transparente, se utiliza una Edge Function en Supabase (`qz-security`) que implementa la lógica de certificados y firma asimétrica requerida por QZ.
+- **Endpoint de Certificado (`/certificate`):** Retorna la llave pública (certificado) almacenada de forma segura en `QZ_CERTIFICATE`.
+- **Endpoint de Firma (`/sign`):** Firma dinámicamente las solicitudes de impresión usando la llave privada almacenada en el backend `QZ_PRIVATE_KEY`. *Regla Estricta: La llave privada NUNCA debe enviarse al frontend.*
+- **Requisitos de CORS:** La función maneja dinámicamente los encabezados CORS validando si el `Origin` coincide con un allowlist seguro que incluye los dominios autorizados de la aplicación (ej. `https://gameboxservice.onrender.com`). Garantiza la presencia de headers de `Access-Control-Allow-Origin`, `Methods`, etc., tanto para respuestas correctas como en los errores o solicitudes preflight (`OPTIONS`).
+- Si CORS, el certificado o la firma fallan, el sistema cae automáticamente en el `PrintFallbackModal` sin bloquear el flujo de trabajo.
 
 ## Regla Estricta: Estilos y Dimensiones
 **Ninguna acción de QZ Tray debe alterar los tamaños de los contenedores CSS.**
