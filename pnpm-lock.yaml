@@ -84,6 +84,9 @@ importers:
       postcss:
         specifier: ^8.5.6
         version: 8.5.14
+      supabase:
+        specifier: ^2.107.0
+        version: 2.107.0
       tailwindcss:
         specifier: ^4.1.13
         version: 4.3.0
@@ -629,6 +632,50 @@ packages:
     resolution: {integrity: sha512-ouQ0DjKcEFg+0gZigFIEgu01V3e6riGZPzgVD0MJsCBNsMsiDT74+GgCEIElMUpTGkwSja3xLwdFRFgMNFKcjg==}
     peerDependencies:
       '@supabase/supabase-js': ^2.21.0
+
+  '@supabase/cli-darwin-arm64@2.107.0':
+    resolution: {integrity: sha512-930MojHei14+PrGNF0QzlPJAjOYilCofgO9aTtKiQ6x36ZUI7dc4ujl5VzccC/19ex/f4ird0lH1d2U92MwDqQ==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@supabase/cli-darwin-x64@2.107.0':
+    resolution: {integrity: sha512-qcnichkHiCCNybtCqoeqYO6q8WuTxilaah18QilZskEM+zCSdV5rOXXfeF1BPexRxsvGYbghZ+fEQfWp7+lOUQ==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@supabase/cli-linux-arm64-musl@2.107.0':
+    resolution: {integrity: sha512-5se1bYRIzivL+ehImnwFjBpzKZ+AwLS6/cBg6lvJOJdWatuaK9Edu6wOZAmPjVMy4vZRJ27tdL+3F7N+Vk64AA==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@supabase/cli-linux-arm64@2.107.0':
+    resolution: {integrity: sha512-an0dsOhPcLQXZ0sFEBm6NU1HFUjXCStHxetfJvgt4u7SiH/EyDMLfDvV7W9ef56bgG+3hoWHtih2Kplj3cecQA==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@supabase/cli-linux-x64-musl@2.107.0':
+    resolution: {integrity: sha512-gXDzvDsmmJw9HbeVRFD6xboGwbu/cpBp84ZESEcXKyB8Onvs3igWKwoXMofx+ppFM1EaZb/flTwJ77b19EMD1A==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@supabase/cli-linux-x64@2.107.0':
+    resolution: {integrity: sha512-8ttnpfBFEXk0JFmH6gw8ZCVcMa/UNH1sD6iG9PQLbK2eXdZ6kDIzGs5g+CEvxZ3j6HxEIYn9h9rfxoqGoBUgwA==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@supabase/cli-windows-arm64@2.107.0':
+    resolution: {integrity: sha512-V/4q5dbDgBQXhDAJaHamTm9u/kY2UJ4nNibVKOYMaLh9q7H74b8unteJ+rYHSwWZy0EIT8DTDryGP6xatKQicw==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@supabase/cli-windows-x64@2.107.0':
+    resolution: {integrity: sha512-ciDDFUGHt6bFjtVD00cojFhB5oscZAyjPo2vg94RGUeKHXx1zo/UzfMvUlCA32y5b5KONZ4TKStCHhlFK7Clrw==}
+    cpu: [x64]
+    os: [win32]
 
   '@supabase/functions-js@2.105.4':
     resolution: {integrity: sha512-JVNKbBft3Qkja+WlGaE026AJ2AH9K0UTsxsfvEIHgd4zFrBor4BYRCrYFrv9IDsvVqkF72wKDsODJl5GY/C4tA==}
@@ -1641,6 +1688,10 @@ packages:
     resolution: {integrity: sha512-k55yxKHwaXnpYGsOzg4Vl8+tDrWylxDEpknGjhTiZB8dFRU5rTo9CAzeycivxV3s+zlTKwrs6WxMxR95n26kwg==}
     engines: {node: '>=0.10.0'}
 
+  supabase@2.107.0:
+    resolution: {integrity: sha512-qYAbm3D//buhnY5v4L//IrBQhowN2Jd2kx16hNyOfu0+TVuWVIR1L5WsS/YOk+UJh3Ch5ABmqKebWpwn1p0ysg==}
+    hasBin: true
+
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
@@ -2209,6 +2260,30 @@ snapshots:
   '@supabase/auth-ui-shared@0.1.8(@supabase/supabase-js@2.105.4)':
     dependencies:
       '@supabase/supabase-js': 2.105.4
+
+  '@supabase/cli-darwin-arm64@2.107.0':
+    optional: true
+
+  '@supabase/cli-darwin-x64@2.107.0':
+    optional: true
+
+  '@supabase/cli-linux-arm64-musl@2.107.0':
+    optional: true
+
+  '@supabase/cli-linux-arm64@2.107.0':
+    optional: true
+
+  '@supabase/cli-linux-x64-musl@2.107.0':
+    optional: true
+
+  '@supabase/cli-linux-x64@2.107.0':
+    optional: true
+
+  '@supabase/cli-windows-arm64@2.107.0':
+    optional: true
+
+  '@supabase/cli-windows-x64@2.107.0':
+    optional: true
 
   '@supabase/functions-js@2.105.4':
     dependencies:
@@ -3228,6 +3303,17 @@ snapshots:
   strip-outer@1.0.1:
     dependencies:
       escape-string-regexp: 1.0.5
+
+  supabase@2.107.0:
+    optionalDependencies:
+      '@supabase/cli-darwin-arm64': 2.107.0
+      '@supabase/cli-darwin-x64': 2.107.0
+      '@supabase/cli-linux-arm64': 2.107.0
+      '@supabase/cli-linux-arm64-musl': 2.107.0
+      '@supabase/cli-linux-x64': 2.107.0
+      '@supabase/cli-linux-x64-musl': 2.107.0
+      '@supabase/cli-windows-arm64': 2.107.0
+      '@supabase/cli-windows-x64': 2.107.0
 
   supports-color@7.2.0:
     dependencies:
