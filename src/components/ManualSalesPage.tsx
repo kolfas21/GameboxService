@@ -20,7 +20,9 @@ import { useManualSales } from '../hooks/useManualSales'
 import { useModal } from '../hooks/useModal'
 import { CustomModal } from './ui/CustomModal'
 import logoGamebox from '../assets/logo-gamebox.png'
-import { checkPrinterReady, printTicket as printTicketToQz } from '../services/qzPrinterService'
+import { checkPrinterReady, printTicket as printTicketToQz, saveBranchPrinterSettings } from '../services/qzPrinterService'
+import { PrintFallbackModal } from './ui/PrintFallbackModal'
+import { useAuth } from '../contexts/AuthContext'
 import type {
   CreateManualSaleInput,
   ManualSale,
@@ -118,6 +120,7 @@ const formatDateOnly = (value?: string | null) => {
 }
 
 const ManualSalesPage: React.FC = () => {
+  const { user } = useAuth()
   const { settings } = useCompanySettings()
   const displayLogo = settings?.logo_url || logoGamebox
   const logoForPreview = displayLogo.includes('supabase')
@@ -134,6 +137,7 @@ const ManualSalesPage: React.FC = () => {
   const [sendingWhatsappId, setSendingWhatsappId] = useState<string | null>(null)
   const [warrantyMonths, setWarrantyMonths] = useState('1')
   const [showTicketModal, setShowTicketModal] = useState(false)
+  const [fallbackModal, setFallbackModal] = useState<{isOpen: boolean, errorDetail: string}>({isOpen: false, errorDetail: ''})
 
   const filteredSales = useMemo(() => {
     const search = searchTerm.trim().toLowerCase()
@@ -267,13 +271,13 @@ const ManualSalesPage: React.FC = () => {
   const printTicket = async () => {
     if (!selectedSale) return
 
-    const isReady = await checkPrinterReady('ticket')
-    if (!isReady) {
-      saveTicketPdf()
-      return
-    }
-
     try {
+      const isReady = await checkPrinterReady('ticket', user?.sede)
+      if (!isReady) {
+        saveTicketPdf()
+        return
+      }
+
       await printTicketToQz({
         invoiceNumber: selectedSale.invoice_number,
         date: selectedSale.sale_date,
@@ -296,9 +300,12 @@ const ManualSalesPage: React.FC = () => {
           serialNumber: item.serial_number || undefined,
           type: productTypeLabels[item.product_type],
         })),
+      }, user?.sede)
+    } catch (error) {
+      setFallbackModal({
+        isOpen: true,
+        errorDetail: error instanceof Error ? error.message : String(error)
       })
-    } catch (err) {
-      showError('No se pudo imprimir', err instanceof Error ? err.message : 'Error desconocido al imprimir con QZ Tray.')
     }
   }
 
@@ -661,6 +668,25 @@ const ManualSalesPage: React.FC = () => {
           onSavePdf={saveTicketPdf}
         />
       )}
+
+      <PrintFallbackModal
+        isOpen={fallbackModal.isOpen}
+        errorDetail={fallbackModal.errorDetail}
+        onManualPrint={() => {
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          saveTicketPdf()
+        }}
+        onSavePdf={() => {
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          saveTicketPdf()
+        }}
+        onDisableQz={() => {
+          saveBranchPrinterSettings(user?.sede, { qzEnabled: false })
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          saveTicketPdf()
+        }}
+        onClose={() => setFallbackModal({ isOpen: false, errorDetail: '' })}
+      />
     </div>
   )
 }

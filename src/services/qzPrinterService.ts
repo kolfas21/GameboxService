@@ -203,18 +203,71 @@ export const getPrinters = async () => {
   }
 }
 
+export interface BranchPrinterSettings {
+  qzEnabled: boolean
+  ticketPrinter?: string
+  stickerPrinter?: string
+}
+
+export const getBranchKey = (branch: string | null | undefined) => branch ? branch.trim().toLowerCase().replace(/\s+/g, '_') : 'default'
+
+export const getBranchPrinterSettings = (branch: string | null | undefined): BranchPrinterSettings => {
+  const branchKey = getBranchKey(branch)
+  const qzEnabled = localStorage.getItem(`gamebox:printing:${branchKey}:qzEnabled`)
+  
+  // Backwards compatibility migration
+  let ticketPrinter = localStorage.getItem(`gamebox:printing:${branchKey}:ticketPrinter`)
+  let stickerPrinter = localStorage.getItem(`gamebox:printing:${branchKey}:stickerPrinter`)
+  
+  if (!ticketPrinter) {
+    ticketPrinter = localStorage.getItem('gamebox_ticket_printer')
+    if (ticketPrinter) localStorage.setItem(`gamebox:printing:${branchKey}:ticketPrinter`, ticketPrinter)
+  }
+  if (!stickerPrinter) {
+    stickerPrinter = localStorage.getItem('gamebox_sticker_printer')
+    if (stickerPrinter) localStorage.setItem(`gamebox:printing:${branchKey}:stickerPrinter`, stickerPrinter)
+  }
+  
+  return {
+    qzEnabled: qzEnabled !== 'false', // Default to true
+    ticketPrinter: ticketPrinter || undefined,
+    stickerPrinter: stickerPrinter || undefined
+  }
+}
+
+export const saveBranchPrinterSettings = (branch: string | null | undefined, settings: Partial<BranchPrinterSettings>) => {
+  const branchKey = getBranchKey(branch)
+  if (settings.qzEnabled !== undefined) {
+    localStorage.setItem(`gamebox:printing:${branchKey}:qzEnabled`, String(settings.qzEnabled))
+  }
+  if (settings.ticketPrinter !== undefined) {
+    localStorage.setItem(`gamebox:printing:${branchKey}:ticketPrinter`, settings.ticketPrinter)
+    localStorage.setItem('gamebox_ticket_printer', settings.ticketPrinter) // Legacy support just in case
+  }
+  if (settings.stickerPrinter !== undefined) {
+    localStorage.setItem(`gamebox:printing:${branchKey}:stickerPrinter`, settings.stickerPrinter)
+    localStorage.setItem('gamebox_sticker_printer', settings.stickerPrinter) // Legacy support just in case
+  }
+}
+
+// Legacy support
 export const savePrinter = (type: PrinterType, printerName: string) => {
   if (!printerName.trim()) {
     throw new Error('Selecciona una impresora antes de guardar.')
   }
-
   localStorage.setItem(PRINTER_KEYS[type], printerName)
 }
 
+// Legacy support
 export const getSavedPrinter = (type: PrinterType) => localStorage.getItem(PRINTER_KEYS[type]) || ''
 
-const ensureConfiguredPrinter = async (type: PrinterType) => {
-  const printerName = getSavedPrinter(type)
+const ensureConfiguredPrinter = async (type: PrinterType, branch?: string | null) => {
+  const settings = getBranchPrinterSettings(branch)
+  const printerName = type === 'ticket' ? settings.ticketPrinter : settings.stickerPrinter
+
+  if (!settings.qzEnabled) {
+    throw new Error('QZ Tray está deshabilitado para esta sucursal.')
+  }
 
   if (!printerName) {
     throw new Error(type === 'ticket'
@@ -227,18 +280,17 @@ const ensureConfiguredPrinter = async (type: PrinterType) => {
   return printerName
 }
 
-export const checkPrinterReady = async (type: PrinterType): Promise<boolean> => {
-  try {
-    const printerName = getSavedPrinter(type)
-    if (!printerName) return false
+export const checkPrinterReady = async (type: PrinterType, branch?: string | null): Promise<boolean> => {
+  const settings = getBranchPrinterSettings(branch)
+  if (!settings.qzEnabled) return false
+  
+  const printerName = type === 'ticket' ? settings.ticketPrinter : settings.stickerPrinter
+  if (!printerName) return false
 
-    setupQzSecurity()
-    if (qz.websocket.isActive()) return true
-    await qz.websocket.connect()
-    return true
-  } catch {
-    return false
-  }
+  setupQzSecurity()
+  if (qz.websocket.isActive()) return true
+  await qz.websocket.connect()
+  return true
 }
 
 const printRaw = async (printerName: string, data: string[]) => {
@@ -278,18 +330,18 @@ const printHtml = async (printerName: string, html: string, jobName: string) => 
   }
 }
 
-export const printTicketHtml = async (html: string) => {
-  const printerName = await ensureConfiguredPrinter('ticket')
+export const printTicketHtml = async (html: string, branch?: string | null) => {
+  const printerName = await ensureConfiguredPrinter('ticket', branch)
   await printHtml(printerName, html, 'GameBox Ticket')
 }
 
-export const printStickerHtml = async (html: string) => {
-  const printerName = await ensureConfiguredPrinter('sticker')
+export const printStickerHtml = async (html: string, branch?: string | null) => {
+  const printerName = await ensureConfiguredPrinter('sticker', branch)
   await printHtml(printerName, html, 'GameBox Sticker')
 }
 
-export const printTestTicket = async () => {
-  const printerName = await ensureConfiguredPrinter('ticket')
+export const printTestTicket = async (branch?: string | null) => {
+  const printerName = await ensureConfiguredPrinter('ticket', branch)
   const now = formatDateTime()
 
   await printRaw(printerName, [
@@ -307,8 +359,8 @@ export const printTestTicket = async () => {
   ])
 }
 
-export const printTestSticker = async () => {
-  const printerName = await ensureConfiguredPrinter('sticker')
+export const printTestSticker = async (branch?: string | null) => {
+  const printerName = await ensureConfiguredPrinter('sticker', branch)
 
   await printRaw(printerName, [
     `${ESC}@`,
@@ -325,8 +377,8 @@ export const printTestSticker = async () => {
   ])
 }
 
-export const printTicket = async (ticketData: TicketPrintData) => {
-  const printerName = await ensureConfiguredPrinter('ticket')
+export const printTicket = async (ticketData: TicketPrintData, branch?: string | null) => {
+  const printerName = await ensureConfiguredPrinter('ticket', branch)
   const items = ticketData.items || []
 
   const data: string[] = [
@@ -392,8 +444,8 @@ export const printTicket = async (ticketData: TicketPrintData) => {
   await printRaw(printerName, data)
 }
 
-export const printSticker = async (stickerData: StickerPrintData) => {
-  const printerName = await ensureConfiguredPrinter('sticker')
+export const printSticker = async (stickerData: StickerPrintData, branch?: string | null) => {
+  const printerName = await ensureConfiguredPrinter('sticker', branch)
 
   await printRaw(printerName, [
     `${ESC}@`,
@@ -413,8 +465,8 @@ export const printSticker = async (stickerData: StickerPrintData) => {
   ].filter(Boolean))
 }
 
-export const printServiceComanda = async (comandaData: ServiceComandaPrintData) => {
-  const printerName = await ensureConfiguredPrinter('ticket')
+export const printServiceComanda = async (comandaData: ServiceComandaPrintData, branch?: string | null) => {
+  const printerName = await ensureConfiguredPrinter('ticket', branch)
 
   const data: string[] = [
     `${ESC}@`,
@@ -452,8 +504,8 @@ export const printServiceComanda = async (comandaData: ServiceComandaPrintData) 
   await printRaw(printerName, data)
 }
 
-export const printServiceSticker = async (comandaData: ServiceComandaPrintData) => {
-  const printerName = await ensureConfiguredPrinter('sticker')
+export const printServiceSticker = async (comandaData: ServiceComandaPrintData, branch?: string | null) => {
+  const printerName = await ensureConfiguredPrinter('sticker', branch)
 
   await printRaw(printerName, [
     `${ESC}@`,
@@ -487,5 +539,7 @@ export const qzPrinterService = {
   printSticker,
   printServiceComanda,
   printServiceSticker,
-  checkPrinterReady
+  checkPrinterReady,
+  getBranchPrinterSettings,
+  saveBranchPrinterSettings
 }

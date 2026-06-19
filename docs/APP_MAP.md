@@ -98,6 +98,7 @@ GameboxServtc/
 | `components/ui/Button.tsx` | UI | Botón reutilizable |
 | `components/ui/Card.tsx` | UI | Card contenedor |
 | `components/ui/CustomModal.tsx` | UI | Modal genérico |
+| `components/ui/PrintFallbackModal.tsx` | UI | Modal de fallback amigable para QZ Tray |
 | `components/ui/Input.tsx` | UI | Input controlado |
 | `components/ui/StatCard.tsx` | UI | Tarjeta de estadísticas |
 

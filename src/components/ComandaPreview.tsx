@@ -6,8 +6,8 @@ import { useImageToBase64 } from '../hooks'
 import { useCompanySettings } from '../hooks'
 import { formatDateForPrint, getStatusDisplayName } from '../utils'
 import { useAuth } from '../contexts/AuthContext'
-import { CustomModal } from './ui/CustomModal'
-import { checkPrinterReady, printStickerHtml, printTicketHtml } from '../services/qzPrinterService'
+import { PrintFallbackModal } from './ui/PrintFallbackModal'
+import { checkPrinterReady, printStickerHtml, printTicketHtml, saveBranchPrinterSettings } from '../services/qzPrinterService'
 
 interface ComandaPreviewProps {
   order: ServiceOrder
@@ -18,7 +18,7 @@ interface ComandaPreviewProps {
 const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClose }) => {
   const [viewType, setViewType] = useState<'comanda' | 'sticker'>('comanda')
   const [printing, setPrinting] = useState(false)
-  const [printError, setPrintError] = useState('')
+  const [fallbackModal, setFallbackModal] = useState<{isOpen: boolean, errorDetail: string}>({isOpen: false, errorDetail: ''})
   const previewRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
   const { settings } = useCompanySettings()
@@ -41,7 +41,6 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
 
   const handleQzPrint = async () => {
     setPrinting(true)
-    setPrintError('')
 
     try {
       const previewContent = previewRef.current?.querySelector('.bg-white')?.outerHTML
@@ -88,12 +87,10 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
       `
 
       if (viewType === 'sticker') {
-        await printStickerHtml(html)
+        await printStickerHtml(html, user?.sede)
       } else {
-        await printTicketHtml(html)
+        await printTicketHtml(html, user?.sede)
       }
-    } catch (error) {
-      setPrintError(error instanceof Error ? error.message : String(error))
     } finally {
       setPrinting(false)
     }
@@ -101,12 +98,24 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
 
   const handlePrint = async () => {
     const printerType = viewType === 'comanda' ? 'ticket' : 'sticker'
-    const isReady = await checkPrinterReady(printerType)
-    if (isReady) {
-      await handleQzPrint()
+    try {
+      const isReady = await checkPrinterReady(printerType, user?.sede)
+      if (isReady) {
+        await handleQzPrint()
+        return
+      }
+    } catch (error) {
+      setFallbackModal({
+        isOpen: true,
+        errorDetail: error instanceof Error ? error.message : String(error)
+      })
       return
     }
 
+    handleBrowserPrint()
+  }
+
+  const handleBrowserPrint = () => {
     const title = viewType === 'comanda' ? 'Comanda' : 'Sticker'
     const printWindow = window.open('', '_blank', 'width=600,height=800')
     
@@ -850,13 +859,23 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
           </div>
         </div>
       </div>
-      <CustomModal
-        isOpen={Boolean(printError)}
-        onClose={() => setPrintError('')}
-        onConfirm={() => setPrintError('')}
-        title="Error de impresión"
-        message={printError}
-        type="error"
+      <PrintFallbackModal
+        isOpen={fallbackModal.isOpen}
+        errorDetail={fallbackModal.errorDetail}
+        onManualPrint={() => {
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          handleBrowserPrint()
+        }}
+        onSavePdf={() => {
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          handleDownloadPDF()
+        }}
+        onDisableQz={() => {
+          saveBranchPrinterSettings(user?.sede, { qzEnabled: false })
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          handleBrowserPrint()
+        }}
+        onClose={() => setFallbackModal({ isOpen: false, errorDetail: '' })}
       />
     </>
   )

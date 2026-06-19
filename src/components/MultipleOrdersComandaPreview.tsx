@@ -6,8 +6,8 @@ import { useImageToBase64 } from '../hooks'
 import { useCompanySettings } from '../hooks'
 import { formatDateForPrint, getStatusDisplayName } from '../utils'
 import { useAuth } from '../contexts/AuthContext'
-import { CustomModal } from './ui/CustomModal'
-import { checkPrinterReady, printStickerHtml, printTicketHtml } from '../services/qzPrinterService'
+import { PrintFallbackModal } from './ui/PrintFallbackModal'
+import { checkPrinterReady, printStickerHtml, printTicketHtml, saveBranchPrinterSettings } from '../services/qzPrinterService'
 
 interface MultipleOrdersComandaPreviewProps {
   orders: ServiceOrder[]
@@ -22,7 +22,7 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
 }) => {
   const [viewType, setViewType] = useState<'comanda' | 'individual-stickers'>('comanda')
   const [printing, setPrinting] = useState(false)
-  const [printError, setPrintError] = useState('')
+  const [fallbackModal, setFallbackModal] = useState<{isOpen: boolean, errorDetail: string}>({isOpen: false, errorDetail: ''})
   const previewRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
   const { settings } = useCompanySettings()
@@ -112,7 +112,6 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
 
   const handleQzPrintComanda = async () => {
     setPrinting(true)
-    setPrintError('')
 
     try {
       const previewContent = previewRef.current?.querySelector('.bg-white')?.outerHTML
@@ -120,9 +119,7 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
         throw new Error('Selecciona la pestaña Comanda Completa antes de imprimir.')
       }
 
-      await printTicketHtml(buildPreviewHtml(previewContent, 'ticket'))
-    } catch (error) {
-      setPrintError(error instanceof Error ? error.message : String(error))
+      await printTicketHtml(buildPreviewHtml(previewContent, 'ticket'), user?.sede)
     } finally {
       setPrinting(false)
     }
@@ -130,7 +127,6 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
 
   const handleQzPrintStickers = async () => {
     setPrinting(true)
-    setPrintError('')
 
     try {
       const stickerContent = Array.from(previewRef.current?.querySelectorAll('.bg-white') || [])
@@ -141,21 +137,31 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
         throw new Error('Selecciona la pestaña Stickers Individuales antes de imprimir.')
       }
 
-      await printStickerHtml(buildPreviewHtml(stickerContent, 'sticker'))
-    } catch (error) {
-      setPrintError(error instanceof Error ? error.message : String(error))
+      await printStickerHtml(buildPreviewHtml(stickerContent, 'sticker'), user?.sede)
     } finally {
       setPrinting(false)
     }
   }
 
   const handlePrintComanda = async () => {
-    const isReady = await checkPrinterReady('ticket')
-    if (isReady) {
-      await handleQzPrintComanda()
+    try {
+      const isReady = await checkPrinterReady('ticket', user?.sede)
+      if (isReady) {
+        await handleQzPrintComanda()
+        return
+      }
+    } catch (error) {
+      setFallbackModal({
+        isOpen: true,
+        errorDetail: error instanceof Error ? error.message : String(error)
+      })
       return
     }
 
+    handleBrowserPrintComanda()
+  }
+
+  const handleBrowserPrintComanda = () => {
     const printWindow = window.open('', '_blank', 'width=600,height=800')
     
     if (printWindow) {
@@ -304,12 +310,24 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
   }
 
   const handlePrintStickers = async () => {
-    const isReady = await checkPrinterReady('sticker')
-    if (isReady) {
-      await handleQzPrintStickers()
+    try {
+      const isReady = await checkPrinterReady('sticker', user?.sede)
+      if (isReady) {
+        await handleQzPrintStickers()
+        return
+      }
+    } catch (error) {
+      setFallbackModal({
+        isOpen: true,
+        errorDetail: error instanceof Error ? error.message : String(error)
+      })
       return
     }
 
+    handleBrowserPrintStickers()
+  }
+
+  const handleBrowserPrintStickers = () => {
     const printWindow = window.open('', '_blank', 'width=600,height=800')
     
     if (printWindow) {
@@ -953,13 +971,25 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
           </div>
         </div>
       </div>
-      <CustomModal
-        isOpen={Boolean(printError)}
-        onClose={() => setPrintError('')}
-        onConfirm={() => setPrintError('')}
-        title="Error de impresión"
-        message={printError}
-        type="error"
+      <PrintFallbackModal
+        isOpen={fallbackModal.isOpen}
+        errorDetail={fallbackModal.errorDetail}
+        onManualPrint={() => {
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          if (viewType === 'comanda') handleBrowserPrintComanda()
+          else handleBrowserPrintStickers()
+        }}
+        onSavePdf={() => {
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          handleDownloadPDF()
+        }}
+        onDisableQz={() => {
+          saveBranchPrinterSettings(user?.sede, { qzEnabled: false })
+          setFallbackModal({ isOpen: false, errorDetail: '' })
+          if (viewType === 'comanda') handleBrowserPrintComanda()
+          else handleBrowserPrintStickers()
+        }}
+        onClose={() => setFallbackModal({ isOpen: false, errorDetail: '' })}
       />
     </>
   )
