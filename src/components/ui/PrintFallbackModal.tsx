@@ -1,5 +1,6 @@
 import React from 'react'
-import { Printer, Download, X, PowerOff, AlertTriangle } from 'lucide-react'
+import { Printer, Download, X, PowerOff, AlertTriangle, Settings } from 'lucide-react'
+import { useRouter } from '../../contexts/RouterContext'
 
 interface PrintFallbackModalProps {
   isOpen: boolean
@@ -18,6 +19,8 @@ export const PrintFallbackModal: React.FC<PrintFallbackModalProps> = ({
   onDisableQz,
   onClose
 }) => {
+  const { navigate } = useRouter()
+
   if (!isOpen) return null
 
   const isCertError = errorDetail.toLowerCase().includes('sign') || 
@@ -38,7 +41,7 @@ export const PrintFallbackModal: React.FC<PrintFallbackModalProps> = ({
           </div>
           <div className="modal-body py-4">
             <p className="mb-3 fs-6">
-              QZ Tray no está disponible para imprimir directamente en esta sucursal o presentó un problema de certificado/firma. Puedes imprimir manualmente desde el navegador{onSavePdf ? ' o guardar el PDF' : ''}.
+              QZ Tray está conectado, pero no confía en esta aplicación o falló la firma de la solicitud. Puedes imprimir manualmente desde el navegador o deshabilitar QZ para esta sucursal.
             </p>
             
             {isCertError ? (
@@ -69,6 +72,14 @@ export const PrintFallbackModal: React.FC<PrintFallbackModalProps> = ({
               <button className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center py-2" onClick={onDisableQz}>
                 <PowerOff size={18} className="me-2" />
                 Deshabilitar QZ para esta sucursal
+              </button>
+              
+              <button className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center py-2" onClick={() => {
+                onClose()
+                navigate('settings')
+              }}>
+                <Settings size={18} className="me-2" />
+                Configurar impresora
               </button>
               
               <button className="btn btn-light w-100 d-flex align-items-center justify-content-center py-2" onClick={onClose}>

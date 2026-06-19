@@ -204,19 +204,25 @@ const PrinterSettings: React.FC = () => {
           <strong>Opcional:</strong> Esta configuración aplica solo para este computador si deseas impresión directa. Si QZ Tray no está configurado o conectado, el sistema seguirá permitiendo imprimir manualmente desde el navegador de forma transparente.
         </div>
 
-        <div className="form-check form-switch mb-4 bg-light p-3 rounded border d-flex align-items-center">
-          <input 
-            className="form-check-input mt-0 me-3 fs-4" 
-            type="checkbox" 
-            id="qzEnabledToggle"
-            checked={qzEnabled}
-            onChange={(e) => handleToggleQz(e.target.checked)}
-            style={{ cursor: 'pointer' }}
-          />
-          <label className="form-check-label fw-bold d-flex flex-column mb-0" htmlFor="qzEnabledToggle" style={{ cursor: 'pointer' }}>
-            <span>Usar QZ Tray en esta sucursal</span>
-            <small className="text-muted fw-normal">Sucursal actual: {branch}</small>
-          </label>
+        <div className="d-flex align-items-center justify-content-between mb-4 bg-light p-3 rounded border">
+          <div>
+            <div className="fw-bold mb-1">Usar QZ Tray en esta sucursal</div>
+            <div className="small text-muted mb-2">Sucursal actual: {branch}</div>
+            <div className={`small fw-semibold ${qzEnabled ? 'text-success' : 'text-danger'}`}>
+              {qzEnabled ? 'QZ habilitado para esta sucursal.' : 'QZ deshabilitado para esta sucursal. Se usará impresión manual.'}
+            </div>
+          </div>
+          <div className="form-check form-switch m-0 p-0 d-flex justify-content-end">
+            <input 
+              className="form-check-input m-0" 
+              type="checkbox" 
+              role="switch"
+              id="qzEnabledToggle"
+              checked={qzEnabled}
+              onChange={(e) => handleToggleQz(e.target.checked)}
+              style={{ cursor: 'pointer', transform: 'scale(1.3)', transformOrigin: 'right center', marginLeft: '0.5rem' }}
+            />
+          </div>
         </div>
 
         <div className={`row g-3 mb-4 ${!qzEnabled ? 'opacity-50' : ''}`}>
