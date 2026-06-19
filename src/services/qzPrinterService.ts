@@ -227,6 +227,20 @@ const ensureConfiguredPrinter = async (type: PrinterType) => {
   return printerName
 }
 
+export const checkPrinterReady = async (type: PrinterType): Promise<boolean> => {
+  try {
+    const printerName = getSavedPrinter(type)
+    if (!printerName) return false
+
+    setupQzSecurity()
+    if (qz.websocket.isActive()) return true
+    await qz.websocket.connect()
+    return true
+  } catch {
+    return false
+  }
+}
+
 const printRaw = async (printerName: string, data: string[]) => {
   try {
     const config = qz.configs.create(printerName, {
@@ -472,5 +486,6 @@ export const qzPrinterService = {
   printTicket,
   printSticker,
   printServiceComanda,
-  printServiceSticker
+  printServiceSticker,
+  checkPrinterReady
 }

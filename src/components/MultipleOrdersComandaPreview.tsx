@@ -7,7 +7,7 @@ import { useCompanySettings } from '../hooks'
 import { formatDateForPrint, getStatusDisplayName } from '../utils'
 import { useAuth } from '../contexts/AuthContext'
 import { CustomModal } from './ui/CustomModal'
-import { printStickerHtml, printTicketHtml } from '../services/qzPrinterService'
+import { checkPrinterReady, printStickerHtml, printTicketHtml } from '../services/qzPrinterService'
 
 interface MultipleOrdersComandaPreviewProps {
   orders: ServiceOrder[]
@@ -149,9 +149,10 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
     }
   }
 
-  const handlePrintComanda = () => {
-    if (Date.now() >= 0) {
-      void handleQzPrintComanda()
+  const handlePrintComanda = async () => {
+    const isReady = await checkPrinterReady('ticket')
+    if (isReady) {
+      await handleQzPrintComanda()
       return
     }
 
@@ -302,9 +303,10 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
     }
   }
 
-  const handlePrintStickers = () => {
-    if (Date.now() >= 0) {
-      void handleQzPrintStickers()
+  const handlePrintStickers = async () => {
+    const isReady = await checkPrinterReady('sticker')
+    if (isReady) {
+      await handleQzPrintStickers()
       return
     }
 
@@ -439,8 +441,6 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
     }
   }
 
-  void handlePrintComanda
-  void handlePrintStickers
 
   const handleDownloadPDF = () => {
     const title = viewType === 'comanda' ? 'Comanda Múltiple' : 'Stickers Individuales'
@@ -909,7 +909,7 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
               <div className="d-flex gap-2 justify-content-center flex-wrap">
                 <button
                   className="btn btn-primary"
-                  onClick={handleQzPrintComanda}
+                  onClick={handlePrintComanda}
                   disabled={printing}
                 >
                   <Printer size={16} className="me-1" />
@@ -918,7 +918,7 @@ const MultipleOrdersComandaPreview: React.FC<MultipleOrdersComandaPreviewProps> 
                 
                 <button
                   className="btn btn-warning text-dark"
-                  onClick={handleQzPrintStickers}
+                  onClick={handlePrintStickers}
                   disabled={printing}
                 >
                   <Tag size={16} className="me-1" />

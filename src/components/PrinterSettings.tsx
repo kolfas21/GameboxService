@@ -187,7 +187,7 @@ const PrinterSettings: React.FC = () => {
 
       <div className="card-body">
         <div className="alert alert-info mb-4">
-          Esta configuración aplica solo para este computador. Asegúrate de tener QZ Tray abierto y las impresoras instaladas en Windows.
+          <strong>Opcional:</strong> Esta configuración aplica solo para este computador si deseas impresión directa. Si QZ Tray no está configurado o conectado, el sistema seguirá permitiendo imprimir manualmente desde el navegador de forma transparente.
         </div>
 
         <div className="row g-3 mb-4">

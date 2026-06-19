@@ -7,7 +7,7 @@ import { useCompanySettings } from '../hooks'
 import { formatDateForPrint, getStatusDisplayName } from '../utils'
 import { useAuth } from '../contexts/AuthContext'
 import { CustomModal } from './ui/CustomModal'
-import { printStickerHtml, printTicketHtml } from '../services/qzPrinterService'
+import { checkPrinterReady, printStickerHtml, printTicketHtml } from '../services/qzPrinterService'
 
 interface ComandaPreviewProps {
   order: ServiceOrder
@@ -99,9 +99,11 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
     }
   }
 
-  const handlePrint = () => {
-    if (Date.now() >= 0) {
-      void handleQzPrint()
+  const handlePrint = async () => {
+    const printerType = viewType === 'comanda' ? 'ticket' : 'sticker'
+    const isReady = await checkPrinterReady(printerType)
+    if (isReady) {
+      await handleQzPrint()
       return
     }
 
@@ -357,8 +359,6 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
       }, 1000)
     }
   }
-
-  void handlePrint
 
   const handleDownloadPDF = () => {
     const title = viewType === 'comanda' ? 'Comanda' : 'Sticker'
@@ -823,7 +823,7 @@ const ComandaPreview: React.FC<ComandaPreviewProps> = ({ order, customer, onClos
               <div className="d-flex gap-2 justify-content-center">
                 <button
                   className="btn btn-primary"
-                  onClick={handleQzPrint}
+                  onClick={handlePrint}
                   disabled={printing}
                 >
                   <Printer size={16} className="me-1" />

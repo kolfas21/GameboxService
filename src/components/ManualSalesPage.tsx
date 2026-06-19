@@ -20,7 +20,7 @@ import { useManualSales } from '../hooks/useManualSales'
 import { useModal } from '../hooks/useModal'
 import { CustomModal } from './ui/CustomModal'
 import logoGamebox from '../assets/logo-gamebox.png'
-import { printTicket as printTicketToQz } from '../services/qzPrinterService'
+import { checkPrinterReady, printTicket as printTicketToQz } from '../services/qzPrinterService'
 import type {
   CreateManualSaleInput,
   ManualSale,
@@ -266,6 +266,12 @@ const ManualSalesPage: React.FC = () => {
 
   const printTicket = async () => {
     if (!selectedSale) return
+
+    const isReady = await checkPrinterReady('ticket')
+    if (!isReady) {
+      saveTicketPdf()
+      return
+    }
 
     try {
       await printTicketToQz({
