@@ -17,8 +17,9 @@ export const sanitizeInput = {
       .replace(/<script[^>]*>.*?<\/script>/gi, '')
       // Eliminar etiquetas HTML
       .replace(/<[^>]+>/g, '')
-      // Eliminar caracteres de control
-      .replace(/[\x00-\x1F\x7F]/g, '')
+      // Eliminar caracteres de control (U+0000-U+001F y U+007F)
+      // eslint-disable-next-line no-control-regex -- necesario para limpiar caracteres de control
+      .replace(/[\u0000-\u001F\u007F]/g, '')
       // Limitar longitud
       .substring(0, 500)
   },
@@ -37,7 +38,7 @@ export const sanitizeInput = {
    */
   phone: (input: string): string => {
     if (!input) return ''
-    return input.replace(/[^\d\s\-\+\(\)]/g, '').substring(0, 20)
+    return input.replace(/[^\d\s+().-]/g, '').substring(0, 20)
   },
 
   /**

@@ -43,7 +43,7 @@ const DatabaseMigration: React.FC = () => {
           } else {
             setResults(prev => [...prev, '✅ Columna delivery_notes agregada'])
           }
-        } catch (err) {
+        } catch {
           setResults(prev => [...prev, '⚠️ Error agregando delivery_notes: Necesita hacerse manualmente en Supabase'])
         }
 
@@ -60,7 +60,7 @@ const DatabaseMigration: React.FC = () => {
           } else {
             setResults(prev => [...prev, '✅ Columna delivered_at agregada'])
           }
-        } catch (err) {
+        } catch {
           setResults(prev => [...prev, '⚠️ Error agregando delivered_at: Necesita hacerse manualmente en Supabase'])
         }
       } else {

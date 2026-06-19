@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Database, AlertCircle, CheckCircle, Play } from 'lucide-react'
@@ -19,7 +19,7 @@ const PendingInvitesMigration: React.FC = () => {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [tableExists, setTableExists] = useState<boolean | null>(null)
-  
+
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
     type: 'info',
@@ -27,16 +27,11 @@ const PendingInvitesMigration: React.FC = () => {
     message: ''
   })
 
-  // Solo admins pueden ejecutar migraciones
-  if (user?.role !== 'admin') {
-    return null
-  }
-
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setModal(prev => ({ ...prev, isOpen: false }))
-  }
+  }, [])
 
-  const showSuccessModal = (message: string) => {
+  const showSuccessModal = useCallback((message: string) => {
     setModal({
       isOpen: true,
       type: 'success',
@@ -44,9 +39,9 @@ const PendingInvitesMigration: React.FC = () => {
       message,
       onConfirm: closeModal
     })
-  }
+  }, [closeModal])
 
-  const showErrorModal = (message: string) => {
+  const showErrorModal = useCallback((message: string) => {
     setModal({
       isOpen: true,
       type: 'error',
@@ -54,11 +49,10 @@ const PendingInvitesMigration: React.FC = () => {
       message,
       onConfirm: closeModal
     })
-  }
+  }, [closeModal])
 
-  const checkTableExists = async () => {
+  const checkTableExists = useCallback(async () => {
     try {
-      // Verificar si la tabla existe y tiene las columnas correctas
       const { error } = await supabase
         .from('pending_invites')
         .select('id, email, full_name, role, invited_by, created_at')
@@ -66,34 +60,27 @@ const PendingInvitesMigration: React.FC = () => {
 
       if (error) {
         console.log('Table check error:', error)
-        if (error.code === 'PGRST116' || error.code === 'PGRST204') {
-          // Table doesn't exist or has wrong schema
-          setTableExists(false)
-        } else {
-          setTableExists(false)
-        }
+        setTableExists(false)
       } else {
-        // Table exists with correct schema
         console.log('Table exists with correct schema')
         setTableExists(true)
       }
-    } catch (error) {
-      console.log('Table check exception:', error)
+    } catch (err) {
+      console.log('Table check exception:', err)
       setTableExists(false)
     }
-  }
+  }, [])
 
   React.useEffect(() => {
     checkTableExists()
-  }, [])
+  }, [checkTableExists])
 
   const executeMigration = async () => {
     setLoading(true)
-    
+
     try {
-      // Crear la tabla pending_invites
       const { error } = await supabase.rpc('create_pending_invites_table')
-      
+
       if (error) {
         console.error('Error en migración:', error)
         showErrorModal(`Error: ${error.message}. Debes ejecutar este SQL manualmente en Supabase.`)
@@ -101,12 +88,17 @@ const PendingInvitesMigration: React.FC = () => {
         showSuccessModal('Tabla "pending_invites" creada exitosamente. El sistema de invitaciones está listo.')
         setTableExists(true)
       }
-    } catch (error: any) {
-      console.error('Error:', error)
+    } catch {
+      console.error('Error en migración automática')
       showErrorModal('No se pudo crear la tabla automáticamente. Ejecuta el SQL manualmente en Supabase.')
     }
-    
+
     setLoading(false)
+  }
+
+  // Solo admins pueden ejecutar migraciones (guard después de hooks)
+  if (user?.role !== 'admin') {
+    return null
   }
 
   const sqlCode = `

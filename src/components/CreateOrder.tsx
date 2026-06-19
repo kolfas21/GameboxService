@@ -10,6 +10,8 @@ import { CustomModal } from './ui/CustomModal'
 import ComandaPreview from './ComandaPreview'
 import MultipleOrdersComandaPreview from './MultipleOrdersComandaPreview'
 import type { DeviceItem } from '../types'
+import type { Customer } from '../types'
+import type { ServiceOrder } from '../types'
 import { sanitizeInput } from '../utils/sanitization'
 import { validators } from '../utils/validation'
 import { handleError } from '../utils/errorHandler'
@@ -29,50 +31,11 @@ const CreateOrder: React.FC = () => {
   const { navigate, preSelectedCustomer, setPreSelectedCustomer } = useRouter()
   const { settings } = useCompanySettings()
 
-  // Redirigir técnicos al dashboard si llegan aquí por error
-  useEffect(() => {
-    if (user?.role === 'technician') {
-      console.log('⚠️ Técnico redirigido desde CreateOrder al dashboard')
-      navigate('dashboard')
-    }
-  }, [user, navigate])
-
-  // Cargar cliente pre-seleccionado si existe
-  useEffect(() => {
-    if (preSelectedCustomer) {
-      setCustomer(preSelectedCustomer)
-      setPhoneNumber(preSelectedCustomer.phone || preSelectedCustomer.cedula)
-      setShowNewCustomerForm(false)
-      // Limpiar el cliente pre-seleccionado después de cargarlo
-      setPreSelectedCustomer(null)
-    }
-  }, [preSelectedCustomer, setPreSelectedCustomer])
-
-  // Si es un técnico, mostrar un mensaje mientras se redirige
-  if (user?.role === 'technician') {
-    return (
-      <div className="container-fluid px-3 px-md-4 py-3">
-        <div className="row">
-          <div className="col-12">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body text-center py-5">
-                <ClipboardList size={60} className="text-warning mb-3" />
-                <h3 className="h5 fw-bold text-dark mb-3">Acceso No Permitido</h3>
-                <p className="text-muted mb-3">Los técnicos no pueden crear órdenes de servicio.</p>
-                <p className="text-muted">Redirigiendo al dashboard...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   // Estados para el cliente
   const [phoneNumber, setPhoneNumber] = useState('')
-  const [customer, setCustomer] = useState<any>(null)
+  const [customer, setCustomer] = useState<Customer | null>(null)
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false)
-  
+
   // Estados para el nuevo cliente
   const [newCustomer, setNewCustomer] = useState({
     cedula: '',
@@ -80,7 +43,7 @@ const CreateOrder: React.FC = () => {
     phone: '',
     email: '',
   })
-  
+
   // Estados para la orden de servicio
   const [orderData, setOrderData] = useState({
     device_type: '',
@@ -102,16 +65,16 @@ const CreateOrder: React.FC = () => {
     observations: '',
   })
   const [multipleDeviceMode, setMultipleDeviceMode] = useState(false)
-  
+
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
-  
+
   // Estados para la comanda
   const [showComanda, setShowComanda] = useState(false)
-  const [createdOrder, setCreatedOrder] = useState<any>(null)
+  const [createdOrder, setCreatedOrder] = useState<ServiceOrder | null>(null)
   const [showMultipleComanda, setShowMultipleComanda] = useState(false)
-  const [createdOrders, setCreatedOrders] = useState<any[]>([])
-  
+  const [createdOrders, setCreatedOrders] = useState<ServiceOrder[]>([])
+
   // Estado para el modal
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
@@ -119,9 +82,48 @@ const CreateOrder: React.FC = () => {
     title: '',
     message: ''
   })
-  
+
   const { getCustomerByCedula, createCustomer } = useCustomers()
   const { createServiceOrder, createMultipleDeviceOrder } = useServiceOrders()
+
+  // Redirigir técnicos al dashboard si llegan aquí por error
+  useEffect(() => {
+    if (user?.role === 'technician') {
+      console.log('⚠️ Técnico redirigido desde CreateOrder al dashboard')
+      navigate('dashboard')
+    }
+  }, [user, navigate])
+
+  // Cargar cliente pre-seleccionado si existe
+  useEffect(() => {
+    if (preSelectedCustomer) {
+      setCustomer(preSelectedCustomer)
+      setPhoneNumber(preSelectedCustomer.phone || preSelectedCustomer.cedula)
+      setShowNewCustomerForm(false)
+      // Limpiar el cliente pre-seleccionado después de cargarlo
+      setPreSelectedCustomer(null)
+    }
+  }, [preSelectedCustomer, setPreSelectedCustomer])
+
+  // Si es un técnico, mostrar un mensaje mientras se redirige (guard después de hooks)
+  if (user?.role === 'technician') {
+    return (
+      <div className="container-fluid px-3 px-md-4 py-3">
+        <div className="row">
+          <div className="col-12">
+            <div className="card border-0 shadow-sm">
+              <div className="card-body text-center py-5">
+                <ClipboardList size={60} className="text-warning mb-3" />
+                <h3 className="h5 fw-bold text-dark mb-3">Acceso No Permitido</h3>
+                <p className="text-muted mb-3">Los técnicos no pueden crear órdenes de servicio.</p>
+                <p className="text-muted">Redirigiendo al dashboard...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const closeModal = () => {
     setModal(prev => ({ ...prev, isOpen: false }))
@@ -1105,12 +1107,12 @@ const CreateOrder: React.FC = () => {
       )}
       
       {/* Comanda de Impresión */}
-      {showComanda && createdOrder && (
+      {showComanda && createdOrder && createdOrder.customer && (
         <div className="row mt-4">
           <div className="col-12">
             <ComandaPreview
               order={createdOrder}
-              customer={createdOrder.customers}
+              customer={createdOrder.customer}
               onClose={handleCloseSingleComanda}
             />
           </div>

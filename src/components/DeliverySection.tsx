@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useServiceOrders } from '../hooks/useServiceOrders'
 import { useAuth } from '../contexts/AuthContext'
+import type { ServiceOrder } from '../types'
 import { Package, Calendar, User, AlertTriangle, CheckCircle, XCircle, DollarSign } from 'lucide-react'
 import { CustomModal } from './ui/CustomModal'
 
@@ -29,7 +30,7 @@ const DeliverySection: React.FC = () => {
   // Modal de entrega/cobro
   const [showDeliverModal, setShowDeliverModal] = useState(false)
   const [deliverOrderId, setDeliverOrderId] = useState('')
-  const [deliverOrderData, setDeliverOrderData] = useState<any>(null)
+  const [deliverOrderData, setDeliverOrderData] = useState<ServiceOrder | null>(null)
   const [deliveryNotes, setDeliveryNotes] = useState('')
   const [repairCost, setRepairCost] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'efectivo' | 'transferencia' | 'tarjeta' | 'otro'>('efectivo')
@@ -42,7 +43,7 @@ const DeliverySection: React.FC = () => {
 
   const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }))
 
-  const handleDeliverOrder = (orderId: string, order: any) => {
+  const handleDeliverOrder = (orderId: string, order: ServiceOrder) => {
     setDeliverOrderId(orderId)
     setDeliverOrderData(order)
     setDeliveryNotes('')

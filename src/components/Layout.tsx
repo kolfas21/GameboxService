@@ -98,7 +98,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
     // Una vez cargado, usar SOLO el logo de la BD (o hardcodeado si BD no tiene)
     return settings?.logo_url || logoGamebox
-  }, [settings?.logo_url, loading, settings])
+  }, [loading, settings])
   
   const companyName = settings?.company_name || 'GameBox Service'
   

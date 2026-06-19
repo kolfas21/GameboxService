@@ -9,6 +9,10 @@ interface CreateUserData {
   role: UserRole
 }
 
+/** Extrae el mensaje de un error desconocido */
+const getErrorMessage = (err: unknown): string =>
+  err instanceof Error ? err.message : 'Error desconocido'
+
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -18,7 +22,7 @@ export const useUsers = () => {
     try {
       setLoading(true)
       setError(null)
-      
+
       // Solo obtener perfiles existentes (evitamos el error de admin)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -31,9 +35,9 @@ export const useUsers = () => {
       }
 
       setUsers(profiles || [])
-    } catch (error: any) {
-      console.error('Error fetching users:', error)
-      setError(error.message)
+    } catch (err: unknown) {
+      console.error('Error fetching users:', err)
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -42,7 +46,7 @@ export const useUsers = () => {
   const createUser = async (userData: CreateUserData) => {
     try {
       setError(null)
-      
+
       // Crear usuario usando signUp
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
@@ -77,22 +81,23 @@ export const useUsers = () => {
         }
 
         await fetchUsers()
-        
+
         return { data: authData.user, error: null }
       }
-      
+
       return { data: null, error: 'No se pudo crear el usuario' }
-    } catch (error: any) {
-      console.error('Error creating user:', error)
-      setError(error.message)
-      return { data: null, error: error.message }
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err)
+      console.error('Error creating user:', err)
+      setError(msg)
+      return { data: null, error: msg }
     }
   }
 
   const deleteUser = async (userId: string) => {
     try {
       setError(null)
-      
+
       // Solo eliminar el perfil (no podemos eliminar de auth sin permisos admin)
       const { error: profileError } = await supabase
         .from('profiles')
@@ -105,23 +110,24 @@ export const useUsers = () => {
 
       // Actualizar la lista local
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId))
-      
+
       return { error: null }
-    } catch (error: any) {
-      console.error('Error deleting user:', error)
-      setError(error.message)
-      return { error: error.message }
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err)
+      console.error('Error deleting user:', err)
+      setError(msg)
+      return { error: msg }
     }
   }
 
   const updateUserRole = async (userId: string, newRole: UserRole) => {
     try {
       setError(null)
-      
+
       // Intentar actualizar el perfil existente
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           role: newRole,
           updated_at: new Date().toISOString()
         })
@@ -155,27 +161,28 @@ export const useUsers = () => {
       // Actualizar la lista local
       setUsers(prevUsers =>
         prevUsers.map(user =>
-          user.id === userId 
-            ? { ...user, role: newRole, updated_at: new Date().toISOString() } 
+          user.id === userId
+            ? { ...user, role: newRole, updated_at: new Date().toISOString() }
             : user
         )
       )
-      
+
       return { data, error: null }
-    } catch (error: any) {
-      console.error('Error updating user role:', error)
-      setError(error.message)
-      return { data: null, error: error.message }
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err)
+      console.error('Error updating user role:', err)
+      setError(msg)
+      return { data: null, error: msg }
     }
   }
 
   const updateUserSede = async (userId: string, newSede: string) => {
     try {
       setError(null)
-      
+
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           sede: newSede,
           updated_at: new Date().toISOString()
         })
@@ -190,27 +197,28 @@ export const useUsers = () => {
       // Actualizar la lista local
       setUsers(prevUsers =>
         prevUsers.map(user =>
-          user.id === userId 
-            ? { ...user, sede: newSede, updated_at: new Date().toISOString() } 
+          user.id === userId
+            ? { ...user, sede: newSede, updated_at: new Date().toISOString() }
             : user
         )
       )
-      
+
       return { data, error: null }
-    } catch (error: any) {
-      console.error('Error updating user sede:', error)
-      setError(error.message)
-      return { data: null, error: error.message }
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err)
+      console.error('Error updating user sede:', err)
+      setError(msg)
+      return { data: null, error: msg }
     }
   }
 
   const updateUserBranchPhone = async (userId: string, newBranchPhone: string) => {
     try {
       setError(null)
-      
+
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .update({ 
+        .update({
           branch_phone: newBranchPhone,
           updated_at: new Date().toISOString()
         })
@@ -225,24 +233,25 @@ export const useUsers = () => {
       // Actualizar la lista local
       setUsers(prevUsers =>
         prevUsers.map(user =>
-          user.id === userId 
-            ? { ...user, branch_phone: newBranchPhone, updated_at: new Date().toISOString() } 
+          user.id === userId
+            ? { ...user, branch_phone: newBranchPhone, updated_at: new Date().toISOString() }
             : user
         )
       )
-      
+
       return { data, error: null }
-    } catch (error: any) {
-      console.error('Error updating user branch phone:', error)
-      setError(error.message)
-      return { data: null, error: error.message }
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err)
+      console.error('Error updating user branch phone:', err)
+      setError(msg)
+      return { data: null, error: msg }
     }
   }
 
   const createMissingProfile = async (userId: string, email: string, fullName?: string) => {
     try {
       setError(null)
-      
+
       const { data, error } = await supabase
         .from('profiles')
         .insert({
@@ -262,12 +271,13 @@ export const useUsers = () => {
 
       // Actualizar la lista local
       await fetchUsers()
-      
+
       return { data, error: null }
-    } catch (error: any) {
-      console.error('Error creating missing profile:', error)
-      setError(error.message)
-      return { data: null, error: error.message }
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err)
+      console.error('Error creating missing profile:', err)
+      setError(msg)
+      return { data: null, error: msg }
     }
   }
 

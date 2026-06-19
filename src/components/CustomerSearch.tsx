@@ -6,14 +6,16 @@ import { useModal } from '../hooks/useModal'
 import { useAuth } from '../contexts/AuthContext'
 import { Search, User, Clock, CheckCircle, Package, Phone, Mail, Calendar, FileText, X, Edit, Trash2 } from 'lucide-react'
 import { CustomModal } from './ui/CustomModal'
+import type { Customer } from '../types'
+import type { ServiceOrder } from '../types'
 
 const CustomerSearch: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([])
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null)
-  const [customerOrders, setCustomerOrders] = useState<any[]>([])
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [customerOrders, setCustomerOrders] = useState<ServiceOrder[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [editingCustomer, setEditingCustomer] = useState<any>(null)
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [editFormData, setEditFormData] = useState({ full_name: '', cedula: '', phone: '', email: '' })
   const customersPerPage = 10
   const ordersPerPage = 5
@@ -53,13 +55,13 @@ const CustomerSearch: React.FC = () => {
   const currentOrders = customerOrders.slice(indexOfFirstOrder, indexOfLastOrder)
   const totalOrderPages = Math.ceil(customerOrders.length / ordersPerPage)
 
-  const handleSelectCustomer = (customer: any) => {
+  const handleSelectCustomer = (customer: Customer) => {
     setSelectedCustomer(customer)
     const orders = serviceOrders.filter(order => order.customer_id === customer.id)
     setCustomerOrders(orders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()))
   }
 
-  const handleCreateOrder = (customer: any) => {
+  const handleCreateOrder = (customer: Customer) => {
     // Pre-cargar el cliente y navegar a crear orden
     setPreSelectedCustomer(customer)
     navigate('create-order')
@@ -95,7 +97,7 @@ const CustomerSearch: React.FC = () => {
     )
   }
 
-  const handleEditCustomer = (customer: any) => {
+  const handleEditCustomer = (customer: Customer) => {
     setEditingCustomer(customer)
     setEditFormData({
       full_name: customer.full_name,
@@ -123,7 +125,7 @@ const CustomerSearch: React.FC = () => {
     }
   }
 
-  const handleDeleteCustomer = (customer: any) => {
+  const handleDeleteCustomer = (customer: Customer) => {
     const orderCount = serviceOrders.filter(o => o.customer_id === customer.id).length
     
     if (orderCount > 0) {

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useServiceOrders } from '../hooks/useServiceOrders'
 import { useRouter } from '../contexts/RouterContext'
@@ -510,11 +510,11 @@ const Dashboard: React.FC = () => {
           </div>
         )
         
-      case 'technician':
+      case 'technician': {
         const myOrders = serviceOrders.filter(order => order.assigned_technician_id === user.id)
         const availableOrders = serviceOrders.filter(order => order.status === 'pending')
         const myCompleted = myOrders.filter(order => order.status === 'completed')
-        
+
         return (
           <div className="container-fluid px-3 px-md-4 py-3">
             {/* Header Hero */}
@@ -645,7 +645,8 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         )
-        
+      }
+
       default:
         return null
     }
@@ -943,7 +944,7 @@ const Dashboard: React.FC = () => {
 interface StatCardProps {
   title: string
   value: number
-  icon: any
+  icon: React.ElementType
   color: 'primary' | 'warning' | 'info' | 'success' | 'danger' | 'secondary' | 'dark'
   subtitle?: string
   trend?: string

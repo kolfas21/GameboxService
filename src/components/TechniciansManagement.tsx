@@ -17,6 +17,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { fetchTechnicianStatistics, type TechnicianStats } from '../services/technicianStatsService'
+import type { ServiceOrder } from '../types'
 
 type TimeFilter = 'week' | 'month' | 'year' | 'all'
 
@@ -101,7 +102,7 @@ const TechniciansManagement: React.FC = () => {
     setInProgressPage(prev => ({ ...prev, [techId]: page }))
   }
 
-  const getPaginatedItems = (items: any[], page: number) => {
+  const getPaginatedItems = (items: ServiceOrder[], page: number) => {
     const startIndex = (page - 1) * ITEMS_PER_PAGE
     const endIndex = startIndex + ITEMS_PER_PAGE
     return items.slice(startIndex, endIndex)

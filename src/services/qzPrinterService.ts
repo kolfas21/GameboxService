@@ -234,6 +234,7 @@ const printRaw = async (printerName: string, data: string[]) => {
       jobName: 'GameBox Service'
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- qz-tray no tiene tipos completos
     await qz.print(config as any, data)
   } catch (error) {
     throw new Error(`No fue posible imprimir en "${printerName}". Detalle: ${normalizeError(error)}`)
@@ -251,6 +252,7 @@ const printHtml = async (printerName: string, html: string, jobName: string) => 
       }
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- qz-tray no tiene tipos completos
     await qz.print(config as any, [{
       type: 'pixel',
       format: 'html',

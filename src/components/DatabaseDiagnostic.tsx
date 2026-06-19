@@ -1,20 +1,22 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { AlertTriangle, CheckCircle, X } from 'lucide-react'
 
+interface DiagnosticTest {
+  name: string
+  status: 'success' | 'error'
+  message: string
+}
+
 const DatabaseDiagnostic: React.FC = () => {
   const { user } = useAuth()
-  const [tests, setTests] = useState<any[]>([])
+  const [tests, setTests] = useState<DiagnosticTest[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    runDiagnostics()
-  }, [user])
-
-  const runDiagnostics = async () => {
+  const runDiagnostics = useCallback(async () => {
     setLoading(true)
-    const testResults = []
+    const testResults: DiagnosticTest[] = []
 
     // Test 1: Verificar conexión básica
     try {
@@ -24,7 +26,7 @@ const DatabaseDiagnostic: React.FC = () => {
         status: !error ? 'success' : 'error',
         message: !error ? 'Conexión exitosa' : error.message
       })
-    } catch (err) {
+    } catch {
       testResults.push({
         name: 'Conexión a Supabase',
         status: 'error',
@@ -44,11 +46,11 @@ const DatabaseDiagnostic: React.FC = () => {
         status: !error ? 'success' : 'error',
         message: !error ? `Lectura exitosa (${data?.length || 0} registros)` : error.message
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
       testResults.push({
         name: 'Lectura de Profiles',
         status: 'error',
-        message: err.message
+        message: err instanceof Error ? err.message : 'Error desconocido'
       })
     }
 
@@ -64,11 +66,11 @@ const DatabaseDiagnostic: React.FC = () => {
         status: !error ? 'success' : 'error',
         message: !error ? `Lectura exitosa (${data?.length || 0} registros)` : error.message
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
       testResults.push({
         name: 'Lectura de Customers',
         status: 'error',
-        message: err.message
+        message: err instanceof Error ? err.message : 'Error desconocido'
       })
     }
 
@@ -102,11 +104,11 @@ const DatabaseDiagnostic: React.FC = () => {
           message: error.message
         })
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       testResults.push({
         name: 'Inserción en Customers',
         status: 'error',
-        message: err.message
+        message: err instanceof Error ? err.message : 'Error desconocido'
       })
     }
 
@@ -122,11 +124,11 @@ const DatabaseDiagnostic: React.FC = () => {
         status: !error ? 'success' : 'error',
         message: !error ? `Lectura exitosa (${data?.length || 0} registros)` : error.message
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
       testResults.push({
         name: 'Lectura de Service Orders',
         status: 'error',
-        message: err.message
+        message: err instanceof Error ? err.message : 'Error desconocido'
       })
     }
 
@@ -149,17 +151,21 @@ const DatabaseDiagnostic: React.FC = () => {
         status: !error ? 'success' : 'error',
         message: !error ? `Búsqueda exitosa (${data?.length || 0} resultados)` : error.message
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
       testResults.push({
         name: 'Búsqueda por Cédula',
         status: 'error',
-        message: err.message
+        message: err instanceof Error ? err.message : 'Error desconocido'
       })
     }
 
     setTests(testResults)
     setLoading(false)
-  }
+  }, [user])
+
+  useEffect(() => {
+    runDiagnostics()
+  }, [runDiagnostics])
 
   if (loading) {
     return (

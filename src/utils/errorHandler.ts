@@ -131,15 +131,15 @@ export const tryCatch = <T>(
 /**
  * Log de información (no errores)
  */
-export const logInfo = (message: string, data?: any) => {
+export const logInfo = (message: string, data?: unknown) => {
   if (import.meta.env.DEV) {
-    console.log(`ℹ️ ${message}`, data || '')
+    console.log(`ℹ️ ${message}`, data ?? '')
   }
 }
 
 /**
  * Log de advertencia
  */
-export const logWarning = (message: string, data?: any) => {
-  console.warn(`⚠️ ${message}`, data || '')
+export const logWarning = (message: string, data?: unknown) => {
+  console.warn(`⚠️ ${message}`, data ?? '')
 }

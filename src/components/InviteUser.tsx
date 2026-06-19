@@ -109,9 +109,9 @@ const InviteUser: React.FC = () => {
         setFullName('')
         setRole('receptionist')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error:', error)
-      showErrorModal(`Error inesperado: ${error.message}`)
+      showErrorModal(`Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     }
 
     setLoading(false)

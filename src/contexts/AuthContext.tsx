@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+// Patrón estándar de contexto: exporta hook + Provider desde el mismo archivo
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
@@ -6,7 +8,7 @@ import type { User } from '../types'
 interface AuthContextType {
   user: User | null
   session: Session | null
-  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: { message: string } | null }>
   signOut: () => Promise<void>
   loading: boolean
 }
@@ -52,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => subscription.unsubscribe()
   }, [])
 
-  const fetchUserProfile = async (supabaseUser: any) => {
+  const fetchUserProfile = async (supabaseUser: { id: string; email?: string; user_metadata?: Record<string, string> }) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -75,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             .insert({
               id: supabaseUser.id,
               email: supabaseUser.email,
-              full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email.split('@')[0],
+              full_name: supabaseUser.user_metadata?.full_name || (supabaseUser.email ? supabaseUser.email.split('@')[0] : 'Usuario'),
               role: role
             })
             .select()

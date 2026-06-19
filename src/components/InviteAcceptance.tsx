@@ -149,8 +149,8 @@ const InviteAcceptance: React.FC = () => {
           navigate('dashboard')
         }, 2000)
       }
-    } catch (error: any) {
-      showErrorModal(`Error inesperado: ${error.message}`)
+    } catch (error: unknown) {
+      showErrorModal(`Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     }
 
     setLoading(false)

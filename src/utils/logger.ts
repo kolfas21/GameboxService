@@ -5,6 +5,8 @@
 
 const isDevelopment = import.meta.env.DEV
 
+type LogArg = string | number | boolean | object | null | undefined
+
 /**
  * Logger seguro que solo funciona en desarrollo
  * En producción, los logs críticos se pueden enviar a servicios como Sentry
@@ -13,7 +15,7 @@ export const logger = {
   /**
    * Log informativo - Solo en desarrollo
    */
-  info: (...args: any[]) => {
+  info: (...args: LogArg[]) => {
     if (isDevelopment) {
       console.log('ℹ️', ...args)
     }
@@ -22,7 +24,7 @@ export const logger = {
   /**
    * Advertencia - Solo en desarrollo
    */
-  warn: (...args: any[]) => {
+  warn: (...args: LogArg[]) => {
     if (isDevelopment) {
       console.warn('⚠️', ...args)
     }
@@ -38,7 +40,7 @@ export const logger = {
     } else {
       // En producción, solo loggear el contexto, no el error completo
       console.error(`❌ Error in ${context}`)
-      
+
       // TODO: Enviar a servicio de monitoreo (ej: Sentry)
       // Sentry.captureException(error, { tags: { context } })
     }
@@ -47,7 +49,7 @@ export const logger = {
   /**
    * Debug - Solo en desarrollo
    */
-  debug: (...args: any[]) => {
+  debug: (...args: LogArg[]) => {
     if (isDevelopment) {
       console.debug('🐛', ...args)
     }
@@ -56,7 +58,7 @@ export const logger = {
   /**
    * Success - Solo en desarrollo
    */
-  success: (...args: any[]) => {
+  success: (...args: LogArg[]) => {
     if (isDevelopment) {
       console.log('✅', ...args)
     }
@@ -65,7 +67,7 @@ export const logger = {
   /**
    * Tabla - Solo en desarrollo
    */
-  table: (data: any) => {
+  table: (data: LogArg) => {
     if (isDevelopment) {
       console.table(data)
     }
@@ -127,8 +129,8 @@ export const logNetworkRequest = (
  */
 export const logStateChange = (
   component: string,
-  oldState: any,
-  newState: any
+  oldState: LogArg,
+  newState: LogArg
 ) => {
   if (isDevelopment) {
     console.group(`🔄 State change in ${component}`)
@@ -142,7 +144,7 @@ export const logStateChange = (
  * Helper para loggear datos sensibles SOLO en desarrollo
  * NUNCA usar esto con datos reales de clientes
  */
-export const logSensitive = (label: string, data: any) => {
+export const logSensitive = (label: string, data: LogArg) => {
   if (isDevelopment) {
     console.warn('🔐 SENSITIVE DATA:', label, data)
   }

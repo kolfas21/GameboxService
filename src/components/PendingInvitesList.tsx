@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Mail, Calendar, User, Trash2, RefreshCw } from 'lucide-react'
@@ -33,20 +33,11 @@ const PendingInvitesList: React.FC = () => {
     message: ''
   })
 
-  // Solo admins pueden ver las invitaciones
-  if (user?.role !== 'admin') {
-    return (
-      <div className="alert alert-warning">
-        Solo los administradores pueden ver las invitaciones pendientes.
-      </div>
-    )
-  }
-
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setModal(prev => ({ ...prev, isOpen: false }))
-  }
+  }, [])
 
-  const showSuccessModal = (message: string) => {
+  const showSuccessModal = useCallback((message: string) => {
     setModal({
       isOpen: true,
       type: 'success',
@@ -54,9 +45,9 @@ const PendingInvitesList: React.FC = () => {
       message,
       onConfirm: closeModal
     })
-  }
+  }, [closeModal])
 
-  const showErrorModal = (message: string) => {
+  const showErrorModal = useCallback((message: string) => {
     setModal({
       isOpen: true,
       type: 'error',
@@ -64,9 +55,9 @@ const PendingInvitesList: React.FC = () => {
       message,
       onConfirm: closeModal
     })
-  }
+  }, [closeModal])
 
-  const showConfirmModal = (message: string, onConfirm: () => void) => {
+  const showConfirmModal = useCallback((message: string, onConfirm: () => void) => {
     setModal({
       isOpen: true,
       type: 'confirm',
@@ -74,9 +65,9 @@ const PendingInvitesList: React.FC = () => {
       message,
       onConfirm
     })
-  }
+  }, [])
 
-  const loadInvites = async () => {
+  const loadInvites = useCallback(async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -90,14 +81,15 @@ const PendingInvitesList: React.FC = () => {
       } else {
         setInvites(data || [])
       }
-    } catch (error: any) {
-      console.error('Error:', error)
-      showErrorModal(`Error inesperado: ${error.message}`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido'
+      console.error('Error:', err)
+      showErrorModal(`Error inesperado: ${msg}`)
     }
     setLoading(false)
-  }
+  }, [showErrorModal])
 
-  const deleteInvite = async (id: string) => {
+  const deleteInvite = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('pending_invites')
@@ -110,21 +102,31 @@ const PendingInvitesList: React.FC = () => {
         showSuccessModal('Invitación eliminada exitosamente')
         loadInvites()
       }
-    } catch (error: any) {
-      showErrorModal(`Error inesperado: ${error.message}`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido'
+      showErrorModal(`Error inesperado: ${msg}`)
     }
-  }
+  }, [showErrorModal, showSuccessModal, loadInvites])
 
-  const confirmDelete = (id: string, email: string) => {
+  const confirmDelete = useCallback((id: string, email: string) => {
     showConfirmModal(
       `¿Estás seguro de que quieres eliminar la invitación para ${email}?`,
       () => deleteInvite(id)
     )
-  }
+  }, [showConfirmModal, deleteInvite])
 
   useEffect(() => {
     loadInvites()
-  }, [])
+  }, [loadInvites])
+
+  // Solo admins pueden ver las invitaciones (guard después de hooks)
+  if (user?.role !== 'admin') {
+    return (
+      <div className="alert alert-warning">
+        Solo los administradores pueden ver las invitaciones pendientes.
+      </div>
+    )
+  }
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {

@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+// Patrón estándar de contexto: exporta hook + Provider + tipos desde el mismo archivo
 import React, { createContext, useContext, useState } from 'react'
 import type { Customer } from '../types'
 

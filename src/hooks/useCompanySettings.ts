@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import type { CompanySettings } from '../types'
 import { useAuth } from '../contexts/AuthContext'
@@ -23,9 +23,9 @@ export const useCompanySettings = () => {
   const { user } = useAuth()
 
   // Normalizar configuración con valores por defecto
-  const normalizeSettings = (data: any): CompanySettings => {
+  const normalizeSettings = useCallback((data: Record<string, unknown> | null): CompanySettings => {
     return {
-      ...data,
+      ...(data || {}),
       features_enabled: data?.features_enabled || {
         outsourcing: true,
         warranty_tracking: true,
@@ -39,10 +39,10 @@ export const useCompanySettings = () => {
         observations: false,
         estimated_completion: false
       }
-    }
-  }
+    } as CompanySettings
+  }, [])
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setLoading(true)
       console.log('🔄 ============ CARGANDO CONFIGURACIÓN ============')
@@ -88,7 +88,7 @@ export const useCompanySettings = () => {
       setLoading(false)
       console.log('🏁 Carga de configuración finalizada')
     }
-  }
+  }, [normalizeSettings])
 
   const updateSettings = async (
     updates: Partial<CompanySettings>
@@ -231,7 +231,7 @@ export const useCompanySettings = () => {
 
   useEffect(() => {
     fetchSettings()
-  }, [])
+  }, [fetchSettings])
 
   return {
     settings,

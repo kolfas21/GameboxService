@@ -4,14 +4,22 @@ import { useAuth } from '../contexts/AuthContext'
 import { AlertTriangle, CheckCircle, X, Database } from 'lucide-react'
 import { generateOrderNumberSimple } from '../utils/orderNumber'
 
+interface TestResult {
+  name: string
+  status: 'success' | 'warning' | 'error'
+  message: string
+  details?: unknown
+  data?: unknown
+}
+
 const ServiceOrderTest: React.FC = () => {
   const { user } = useAuth()
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<TestResult[]>([])
   const [loading, setLoading] = useState(false)
 
   const runTests = async () => {
     setLoading(true)
-    const testResults = []
+    const testResults: TestResult[] = []
 
     // Test 1: Crear un cliente de prueba
     try {
@@ -113,33 +121,33 @@ const ServiceOrderTest: React.FC = () => {
                   data: completeOrder
                 })
               }
-            } catch (err: any) {
+            } catch (err: unknown) {
               testResults.push({
                 name: 'Obtener Orden con Relaciones',
                 status: 'error',
-                message: err.message
+                message: err instanceof Error ? err.message : 'Error desconocido'
               })
             }
 
             // Limpiar orden de prueba
             await supabase.from('service_orders').delete().eq('id', orderData.id)
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           testResults.push({
             name: 'Crear Orden de Servicio Básica',
             status: 'error',
-            message: err.message
+            message: err instanceof Error ? err.message : 'Error desconocido'
           })
         }
 
         // Limpiar cliente de prueba
         await supabase.from('customers').delete().eq('id', customerData.id)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       testResults.push({
         name: 'Crear Cliente de Prueba',
         status: 'error',
-        message: err.message
+        message: err instanceof Error ? err.message : 'Error desconocido'
       })
     }
 
@@ -163,7 +171,7 @@ const ServiceOrderTest: React.FC = () => {
           message: 'Estructura de foreign keys verificada'
         })
       }
-    } catch (err: any) {
+    } catch {
       testResults.push({
         name: 'Verificar Foreign Keys',
         status: 'warning',
@@ -230,22 +238,22 @@ const ServiceOrderTest: React.FC = () => {
                   <div className="flex-grow-1">
                     <h6 className="alert-heading mb-1 fw-bold">{result.name}</h6>
                     <p className="mb-0 small">{result.message}</p>
-                    {result.details && (
+                    {result.details ? (
                       <details className="mt-2">
                         <summary className="small text-muted">Ver detalles del error</summary>
                         <pre className="small mt-2 p-2 bg-light rounded">
-                          {JSON.stringify(result.details, null, 2)}
+                          {typeof result.details === 'string' ? result.details : JSON.stringify(result.details, null, 2)}
                         </pre>
                       </details>
-                    )}
-                    {result.data && (
+                    ) : null}
+                    {result.data ? (
                       <details className="mt-2">
                         <summary className="small text-muted">Ver datos</summary>
                         <pre className="small mt-2 p-2 bg-light rounded">
-                          {JSON.stringify(result.data, null, 2)}
+                          {typeof result.data === 'string' ? result.data : JSON.stringify(result.data, null, 2)}
                         </pre>
                       </details>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>

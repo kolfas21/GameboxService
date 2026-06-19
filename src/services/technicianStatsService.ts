@@ -24,18 +24,14 @@ export interface TechnicianStats {
  * Obtiene todos los técnicos activos
  */
 export const fetchTechnicians = async (): Promise<UserType[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('role', 'technician')
-      .order('full_name')
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('role', 'technician')
+    .order('full_name')
 
-    if (error) throw error
-    return data || []
-  } catch (err) {
-    throw err
-  }
+  if (error) throw error
+  return data || []
 }
 
 /**
@@ -44,50 +40,41 @@ export const fetchTechnicians = async (): Promise<UserType[]> => {
  * Si completed_by_id es NULL, usa assigned_technician_id como fallback
  */
 export const fetchCompletedOrders = async (): Promise<ServiceOrder[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('service_orders')
-      .select(`
-        *,
-        customer:customers(*),
-        assigned_technician:profiles!service_orders_assigned_technician_id_fkey(*),
-        completed_by:profiles!service_orders_completed_by_id_fkey(*),
-        received_by:profiles!service_orders_received_by_id_fkey(*)
-      `)
-      .eq('status', 'delivered')
-      .order('delivered_at', { ascending: false })
+  const { data, error } = await supabase
+    .from('service_orders')
+    .select(`
+      *,
+      customer:customers(*),
+      assigned_technician:profiles!service_orders_assigned_technician_id_fkey(*),
+      completed_by:profiles!service_orders_completed_by_id_fkey(*),
+      received_by:profiles!service_orders_received_by_id_fkey(*)
+    `)
+    .eq('status', 'delivered')
+    .order('delivered_at', { ascending: false })
 
-    if (error) throw error
-    
-    return data || []
-  } catch (err) {
-    throw err
-  }
+  if (error) throw error
+  return data || []
 }
 
 /**
  * Obtiene todas las órdenes en progreso
  */
 export const fetchInProgressOrders = async (): Promise<ServiceOrder[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('service_orders')
-      .select(`
-        *,
-        customer:customers(*),
-        assigned_technician:profiles!service_orders_assigned_technician_id_fkey(*),
-        completed_by:profiles!service_orders_completed_by_id_fkey(*),
-        received_by:profiles!service_orders_received_by_id_fkey(*)
-      `)
-      .eq('status', 'in_progress')
-      .not('assigned_technician_id', 'is', null)
-      .order('created_at', { ascending: false })
+  const { data, error } = await supabase
+    .from('service_orders')
+    .select(`
+      *,
+      customer:customers(*),
+      assigned_technician:profiles!service_orders_assigned_technician_id_fkey(*),
+      completed_by:profiles!service_orders_completed_by_id_fkey(*),
+      received_by:profiles!service_orders_received_by_id_fkey(*)
+    `)
+    .eq('status', 'in_progress')
+    .not('assigned_technician_id', 'is', null)
+    .order('created_at', { ascending: false })
 
-    if (error) throw error
-    return data || []
-  } catch (err) {
-    throw err
-  }
+  if (error) throw error
+  return data || []
 }
 
 /**
@@ -105,7 +92,7 @@ export const calculateTechnicianStats = (
     const completedBy = order.completed_by_id || order.assigned_technician_id
     return completedBy === technician.id
   })
-  
+
   // Filtrar órdenes en progreso de este técnico
   const techInProgressOrders = inProgressOrders.filter(
     order => order.assigned_technician_id === technician.id
@@ -135,7 +122,7 @@ export const calculateTechnicianStats = (
     return deliveredDate >= oneYearAgo
   }).length
 
-  const avgCompletionTime = techCompletedOrders.length > 0 
+  const avgCompletionTime = techCompletedOrders.length > 0
     ? techCompletedOrders.reduce((sum, order) => {
         const created = new Date(order.created_at)
         const completed = new Date(order.updated_at)
@@ -162,21 +149,17 @@ export const calculateTechnicianStats = (
  * Obtiene estadísticas completas de todos los técnicos
  */
 export const fetchTechnicianStatistics = async (): Promise<TechnicianStats[]> => {
-  try {
-    const [technicians, completedOrders, inProgressOrders] = await Promise.all([
-      fetchTechnicians(),
-      fetchCompletedOrders(),
-      fetchInProgressOrders()
-    ])
+  const [technicians, completedOrders, inProgressOrders] = await Promise.all([
+    fetchTechnicians(),
+    fetchCompletedOrders(),
+    fetchInProgressOrders()
+  ])
 
-    const stats = technicians.map(tech => 
-      calculateTechnicianStats(tech, completedOrders, inProgressOrders)
-    )
+  const stats = technicians.map(tech =>
+    calculateTechnicianStats(tech, completedOrders, inProgressOrders)
+  )
 
-    stats.sort((a, b) => b.totalCompleted - a.totalCompleted)
+  stats.sort((a, b) => b.totalCompleted - a.totalCompleted)
 
-    return stats
-  } catch (err) {
-    throw err
-  }
+  return stats
 }

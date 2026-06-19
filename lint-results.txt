@@ -1,0 +1,111 @@
+﻿
+E:\GameboxServtc\src\components\Dashboard.tsx
+  947:9  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\DatabaseDiagnostic.tsx
+    8:38  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   13:6   warning  React Hook useEffect has a missing dependency: 'runDiagnostics'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   27:14  error    'err' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+   47:19  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+   67:19  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  105:19  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  125:19  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+  152:19  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\DatabaseMigration.tsx
+  46:18  error  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  63:18  error  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\GameboxServtc\src\components\DeliverySection.tsx
+  32:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\EmailTester.tsx
+  101:14  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+E:\GameboxServtc\src\components\ExternalWorkshops.tsx
+  148:14  error  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  153:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\InviteAcceptance.tsx
+  152:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\InviteUser.tsx
+  112:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\Layout.tsx
+  101:6  warning  React Hook useMemo has an unnecessary dependency: 'settings?.logo_url'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\GameboxServtc\src\components\ManualSalesPage.tsx
+  253:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  254:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  255:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  648:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  649:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  650:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\ServiceOrderTest.tsx
+    9:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  127:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  138:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  166:14  error  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  166:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\ServiceQueue.tsx
+   60:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:79  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  200:18  error  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  230:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  246:14  error  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  264:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  299:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  394:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  615:77  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\TechniciansManagement.tsx
+  104:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\UserDiagnostic.tsx
+  70:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  97:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\WarrantySearch.tsx
+  15:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+E:\GameboxServtc\src\components\auth\ProtectedRoute.tsx
+    5:1   warning  Unused eslint-disable directive (no problems were reported from 'react-refresh/only-export-components')
+   83:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  107:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  139:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\GameboxServtc\src\contexts\AuthContext.tsx
+   1:1   warning  Unused eslint-disable directive (no problems were reported from 'react-refresh/only-export-components')
+  17:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\GameboxServtc\src\contexts\RouterContext.tsx
+   1:1   warning  Unused eslint-disable directive (no problems were reported from 'react-refresh/only-export-components')
+  16:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+E:\GameboxServtc\src\hooks\useCompanySettings.ts
+   26:36  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+  234:6   warning  React Hook useEffect has a missing dependency: 'fetchSettings'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\GameboxServtc\src\hooks\useCustomers.ts
+  138:6  warning  React Hook useEffect has a missing dependency: 'fetchCustomers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\GameboxServtc\src\hooks\useManualSales.ts
+  229:6  warning  React Hook useCallback has missing dependencies: 'getSaleById' and 'validateSale'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\GameboxServtc\src\hooks\useServiceOrders.ts
+  407:6  warning  React Hook useEffect has a missing dependency: 'fetchServiceOrders'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+E:\GameboxServtc\src\utils\validation.ts
+  120:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Ô£û 60 problems (51 errors, 9 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
+
+[ELIFECYCLE] Command failed with exit code 1.

@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { useExternalWorkshops, useExternalRepairs } from '../hooks'
 import { useServiceOrders } from '../hooks/useServiceOrders'
+import type { ExternalWorkshop, ExternalRepair } from '../types'
+import { useExternalWorkshops } from '../hooks/useExternalWorkshops'
+import { useExternalRepairs } from '../hooks/useExternalRepairs'
 import { 
   Building, 
   Plus, 
@@ -145,12 +147,12 @@ const ExternalWorkshops: React.FC = () => {
           resetForm()
         }
       }
-    } catch (err) {
+    } catch {
       showError('Error', 'Error inesperado al guardar el taller')
     }
   }
 
-  const handleEdit = (workshop: any) => {
+  const handleEdit = (workshop: ExternalWorkshop) => {
     setFormData({
       name: workshop.name || '',
       contact_person: workshop.contact_person || '',
@@ -231,11 +233,11 @@ const ExternalWorkshops: React.FC = () => {
     )
   }
 
-  const activeWorkshops = workshops.filter(w => w.is_active)
-  const inactiveWorkshops = workshops.filter(w => !w.is_active)
+  const activeWorkshops = workshops.filter((w: ExternalWorkshop) => w.is_active)
+  const inactiveWorkshops = workshops.filter((w: ExternalWorkshop) => !w.is_active)
 
   // Filtrar reparaciones activas (no devueltas)
-  const activeRepairs = repairs.filter(r => r.external_status !== 'returned' && r.external_status !== 'cancelled')
+  const activeRepairs = repairs.filter((r: ExternalRepair) => r.external_status !== 'returned' && r.external_status !== 'cancelled')
 
   return (
     <div className="container-fluid px-3 px-md-4 py-3">
@@ -288,7 +290,7 @@ const ExternalWorkshops: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {activeRepairs.map(repair => (
+                    {activeRepairs.map((repair: ExternalRepair) => (
                       <tr key={repair.id}>
                         <td>
                           <span className="fw-semibold text-primary">
@@ -451,7 +453,7 @@ const ExternalWorkshops: React.FC = () => {
         <div className="mb-4">
           <h5 className="mb-3">Talleres Activos ({activeWorkshops.length})</h5>
           <div className="row g-3">
-            {activeWorkshops.map(workshop => (
+            {activeWorkshops.map((workshop: ExternalWorkshop) => (
               <div key={workshop.id} className="col-12 col-md-6 col-lg-4">
                 <div className="card shadow-sm h-100">
                   <div className="card-body">
@@ -530,7 +532,7 @@ const ExternalWorkshops: React.FC = () => {
         <div>
           <h5 className="mb-3">Talleres Inactivos ({inactiveWorkshops.length})</h5>
           <div className="row g-3">
-            {inactiveWorkshops.map(workshop => (
+            {inactiveWorkshops.map((workshop: ExternalWorkshop) => (
               <div key={workshop.id} className="col-12 col-md-6 col-lg-4">
                 <div className="card shadow-sm h-100 opacity-75">
                   <div className="card-body">

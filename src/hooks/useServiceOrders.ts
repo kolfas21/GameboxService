@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import type { ServiceOrder, CreateServiceOrderData, CreateMultipleDeviceOrderData } from '../types'
 import { useAuth } from '../contexts/AuthContext'
@@ -12,7 +12,7 @@ export const useServiceOrders = (autoRefresh: boolean = true) => {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   const { user } = useAuth()
 
-  const fetchServiceOrders = async () => {
+  const fetchServiceOrders = useCallback(async () => {
     if (!user) {
       return
     }
@@ -55,7 +55,7 @@ export const useServiceOrders = (autoRefresh: boolean = true) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   // Real-time subscription - Solo si hay usuario autenticado
   const { disconnect } = useServiceOrdersRealtime(
@@ -404,7 +404,7 @@ export const useServiceOrders = (autoRefresh: boolean = true) => {
     if (user) {
       fetchServiceOrders()
     }
-  }, [user])
+  }, [user, fetchServiceOrders])
 
   return {
     serviceOrders,

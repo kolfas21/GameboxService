@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Customer, CreateCustomerData } from '../types'
 import { useCustomersRealtime } from './useRealtimeSubscription'
@@ -28,7 +28,7 @@ export const useCustomers = (autoRefresh: boolean = false) => {
     }
   }, [user, disconnect])
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     if (!user) {
       return
     }
@@ -49,7 +49,7 @@ export const useCustomers = (autoRefresh: boolean = false) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   const getCustomerByCedula = async (cedula: string): Promise<Customer | null> => {
     try {
@@ -135,7 +135,7 @@ export const useCustomers = (autoRefresh: boolean = false) => {
 
   useEffect(() => {
     fetchCustomers()
-  }, [])
+  }, [fetchCustomers])
 
   return {
     customers,

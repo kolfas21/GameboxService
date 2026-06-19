@@ -66,7 +66,7 @@ export const validators = {
   phone: (value: string): string | null => {
     if (!value) return null
     
-    const phoneRegex = /^[\d\s\-\+\(\)]{7,20}$/
+    const phoneRegex = /^[\d\s+().-]{7,20}$/
     if (!phoneRegex.test(value)) {
       return 'Teléfono inválido'
     }
@@ -117,9 +117,9 @@ export const validateField = (
 /**
  * Valida un objeto completo usando un esquema de validación
  */
-export const validateForm = <T extends Record<string, any>>(
+export const validateForm = <T extends Record<string, unknown>>(
   data: T,
-  schema: Record<keyof T, Array<(v: any) => string | null>>
+  schema: Record<keyof T, Array<(v: unknown) => string | null>>
 ): { isValid: boolean; errors: Partial<Record<keyof T, string>> } => {
   const errors: Partial<Record<keyof T, string>> = {}
   let isValid = true

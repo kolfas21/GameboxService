@@ -67,8 +67,8 @@ const UserDiagnostic: React.FC = () => {
       } else {
         showSuccessModal('Rol actualizado a admin. Por favor haz logout y login para ver los cambios reflejados.')
       }
-    } catch (error: any) {
-      showErrorModal(`Error: ${error.message}`)
+    } catch (error: unknown) {
+      showErrorModal(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     }
   }
 
@@ -94,8 +94,8 @@ const UserDiagnostic: React.FC = () => {
       } else {
         showSuccessModal('Perfil de admin creado. Por favor haz logout y login para ver los cambios reflejados.')
       }
-    } catch (error: any) {
-      showErrorModal(`Error: ${error.message}`)
+    } catch (error: unknown) {
+      showErrorModal(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     }
   }
 

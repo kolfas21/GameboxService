@@ -12,7 +12,7 @@ const WarrantySearch: React.FC = () => {
   const [searching, setSearching] = useState(false)
   const [searched, setSearched] = useState(false)
   const [showComanda, setShowComanda] = useState(false)
-  const [createdOrder, setCreatedOrder] = useState<any>(null)
+  const [createdOrder, setCreatedOrder] = useState<ServiceOrder | null>(null)
   const [creatingWarranty, setCreatingWarranty] = useState(false)
   
   const { serviceOrders, createServiceOrder, deliverServiceOrder } = useServiceOrders(true)

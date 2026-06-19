@@ -10,6 +10,7 @@ import AutoRefreshIndicator from './AutoRefreshIndicator'
 import ComandaPreview from './ComandaPreview'
 import { CustomModal } from './ui/CustomModal'
 import { supabase } from '../lib/supabase'
+import type { ServiceOrder, Customer } from '../types'
 
 type DeviceFilter = 'all' | 'console' | 'control'
 
@@ -57,7 +58,7 @@ const ServiceQueue: React.FC = () => {
   // Estados para modal de entrega/cobro
   const [showDeliverModal, setShowDeliverModal] = useState(false)
   const [deliverOrderId, setDeliverOrderId] = useState('')
-  const [deliverOrderData, setDeliverOrderData] = useState<any>(null)
+  const [deliverOrderData, setDeliverOrderData] = useState<ServiceOrder | null>(null)
   const [repairCost, setRepairCost] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'efectivo' | 'transferencia' | 'tarjeta' | 'otro'>('efectivo')
   
@@ -79,7 +80,7 @@ const ServiceQueue: React.FC = () => {
   const [returnNotes, setReturnNotes] = useState('')
   
   // Estados para la comanda de impresión
-  const [showComandaFor, setShowComandaFor] = useState<{order: any, customer: any} | null>(null)
+  const [showComandaFor, setShowComandaFor] = useState<{order: ServiceOrder, customer: Customer} | null>(null)
   
   // Estado para el filtro de tipo de dispositivo
   const [deviceFilter, setDeviceFilter] = useState<DeviceFilter>('all')
@@ -197,7 +198,7 @@ const ServiceQueue: React.FC = () => {
             status: 'in_progress' 
           })
           showSuccessModal('Reparación tomada exitosamente')
-        } catch (error) {
+        } catch {
           showErrorModal('Error al tomar la reparación')
         }
         closeModal()
@@ -227,7 +228,7 @@ const ServiceQueue: React.FC = () => {
     }
   }
 
-  const handleDeliverOrder = (orderId: string, order?: any) => {
+  const handleDeliverOrder = (orderId: string, order?: ServiceOrder) => {
     setDeliverOrderId(orderId)
     setDeliverOrderData(order || null)
     setRepairCost('')
@@ -243,7 +244,7 @@ const ServiceQueue: React.FC = () => {
       await deliverServiceOrder(deliverOrderId, deliveryNotes.trim(), cost, method)
       setShowDeliverModal(false)
       showSuccessModal('Artículo entregado exitosamente al cliente')
-    } catch (error) {
+    } catch {
       showErrorModal('Error al registrar la entrega')
     }
   }
@@ -261,7 +262,7 @@ const ServiceQueue: React.FC = () => {
     }
   }
 
-  const handleOutsourceOrder = (orderId: string, order: any) => {
+  const handleOutsourceOrder = (orderId: string, order: ServiceOrder) => {
     // Verificar si la funcionalidad está habilitada
     if (!settings?.features_enabled?.outsourcing) {
       showErrorModal('La funcionalidad de tercerización no está habilitada. Actívala desde Configuración.')
@@ -295,8 +296,13 @@ const ServiceQueue: React.FC = () => {
       return
     }
 
+    if (!outsourceData.orderId) {
+      showErrorModal('Error: falta el ID de la orden')
+      return
+    }
+
     try {
-      const repairData: any = {
+      const repairData = {
         service_order_id: outsourceData.orderId,
         workshop_id: outsourceData.workshopId,
         problem_sent: outsourceData.problemSent.trim(),
@@ -391,7 +397,7 @@ const ServiceQueue: React.FC = () => {
 
   const counts = getDeviceCounts()
 
-  const StatusSection: React.FC<{ title: string; status: string; icon: any; color: string }> = ({ 
+  const StatusSection: React.FC<{ title: string; status: string; icon: React.ElementType; color: string }> = ({ 
     title, 
     status, 
     icon: Icon, 
@@ -612,7 +618,7 @@ const ServiceQueue: React.FC = () => {
 
                       {/* Mostrar taller externo SOLO si la orden NO está pendiente y tiene una reparación activa (no cancelada, no retornada) */}
                       {order.status !== 'pending' && order.external_repair && Array.isArray(order.external_repair) && (() => {
-                        const activeRepair = order.external_repair.find((r: any) =>
+                        const activeRepair = order.external_repair.find((r: { external_status: string; workshop?: { name: string }; id: string }) =>
                           r.external_status !== 'cancelled' && r.external_status !== 'returned'
                         )
                         return activeRepair?.workshop ? (

@@ -14,6 +14,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
+import type { CompanySettings } from '../types'
 import { useCompanySettings } from '../hooks'
 import { useManualSales } from '../hooks/useManualSales'
 import { useModal } from '../hooks/useModal'
@@ -250,9 +251,9 @@ const ManualSalesPage: React.FC = () => {
     printWindow.document.write(buildSaleTicketPrintHtml({
       sale: selectedSale,
       companyName: settings?.company_name || 'GameBox Service',
-      companyNit: (settings as any)?.nit || '',
-      companyAddress: (settings as any)?.address || 'Ingrese su dirección',
-      companyPhone: (settings as any)?.phone || '+57 XXX XXX XXXX',
+      companyNit: (settings as CompanySettings & { nit?: string })?.nit || '',
+      companyAddress: (settings as CompanySettings & { address?: string })?.address || 'Ingrese su dirección',
+      companyPhone: (settings as CompanySettings & { phone?: string })?.phone || '+57 XXX XXX XXXX',
       logoUrl: logoForPreview,
     }))
     printWindow.document.close()
@@ -645,9 +646,9 @@ const ManualSalesPage: React.FC = () => {
         <TicketModal
           sale={selectedSale}
           companyName={settings?.company_name || 'GameBox Service'}
-          companyNit={(settings as any)?.nit || ''}
-          companyAddress={(settings as any)?.address || 'Ingrese su dirección'}
-          companyPhone={(settings as any)?.phone || '+57 XXX XXX XXXX'}
+          companyNit={(settings as CompanySettings & { nit?: string })?.nit || ''}
+          companyAddress={(settings as CompanySettings & { address?: string })?.address || 'Ingrese su dirección'}
+          companyPhone={(settings as CompanySettings & { phone?: string })?.phone || '+57 XXX XXX XXXX'}
           logoUrl={logoForPreview}
           onClose={() => setShowTicketModal(false)}
           onPrint={printTicket}

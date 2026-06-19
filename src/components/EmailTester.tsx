@@ -98,7 +98,7 @@ const EmailTester: React.FC = () => {
         const errorData = await response.text()
         showErrorModal(`❌ Error enviando correo: ${errorData}`)
       }
-    } catch (error) {
+    } catch {
       // Como no tenemos backend configurado, mostramos información útil
       showInfoModal(`
         📧 Configuración SMTP Actual:

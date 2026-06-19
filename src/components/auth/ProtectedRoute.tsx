@@ -2,9 +2,10 @@
  * Componente de Orden Superior (HOC) para protección de rutas
  * Permite proteger componentes basándose en roles de usuario
  */
-
-import { useEffect } from 'react'
+/* eslint-disable react-refresh/only-export-components */
+// Archivo mixto intencional: componente + HOC + hook + constantes de roles, todos relacionados
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useRouter } from '../../contexts/RouterContext'
 import type { Page } from '../../contexts/RouterContext'

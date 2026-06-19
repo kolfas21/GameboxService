@@ -118,7 +118,7 @@ export const useManualSales = (autoLoad = true) => {
     return data as Customer
   }, [findCustomer])
 
-  const validateSale = (input: CreateManualSaleInput) => {
+  const validateSale = useCallback((input: CreateManualSaleInput) => {
     if (!canCreate) throw new Error('No tienes permisos para crear ventas manuales.')
     if (!normalizeText(input.client.full_name)) throw new Error('El cliente debe tener nombre completo.')
     if (!normalizeText(input.client.cedula)) throw new Error('El cliente debe tener documento.')
@@ -139,7 +139,18 @@ export const useManualSales = (autoLoad = true) => {
       if (discount < 0) throw new Error(`El descuento del producto ${position} no puede ser negativo.`)
       if (discount > gross) throw new Error(`El descuento del producto ${position} no puede superar el subtotal.`)
     })
-  }
+  }, [canCreate])
+
+  const getSaleById = useCallback(async (id: string): Promise<ManualSale | null> => {
+    const { data, error: saleError } = await supabase
+      .from('manual_sales')
+      .select(saleSelect)
+      .eq('id', id)
+      .maybeSingle()
+
+    if (saleError) throw saleError
+    return data as ManualSale | null
+  }, [])
 
   const createSale = useCallback(async (input: CreateManualSaleInput): Promise<ManualSale> => {
     if (!user) throw new Error('Debes iniciar sesión para crear ventas.')
@@ -226,18 +237,8 @@ export const useManualSales = (autoLoad = true) => {
     } finally {
       setSaving(false)
     }
-  }, [canCreate, ensureCustomer, user])
+  }, [ensureCustomer, user, getSaleById, validateSale])
 
-  const getSaleById = useCallback(async (id: string): Promise<ManualSale | null> => {
-    const { data, error: saleError } = await supabase
-      .from('manual_sales')
-      .select(saleSelect)
-      .eq('id', id)
-      .maybeSingle()
-
-    if (saleError) throw saleError
-    return data as ManualSale | null
-  }, [])
 
   const cancelSale = useCallback(async (saleId: string, reason: string) => {
     if (!user || !canCancel) throw new Error('Solo un administrador puede anular ventas.')
