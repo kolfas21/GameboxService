@@ -47,6 +47,54 @@ Para que QZ Tray confíe en la aplicación y suprima las advertencias de segurid
 - **Requisitos de CORS:** La función maneja dinámicamente los encabezados CORS validando si el `Origin` coincide con un allowlist seguro que incluye los dominios autorizados de la aplicación (ej. `https://gameboxservice.onrender.com`). Garantiza la presencia de headers de `Access-Control-Allow-Origin`, `Methods`, etc., tanto para respuestas correctas como en los errores o solicitudes preflight (`OPTIONS`).
 - Si CORS, el certificado o la firma fallan, el sistema cae automáticamente en el `PrintFallbackModal` sin bloquear el flujo de trabajo.
 
+### QZ Security Secrets
+
+Para que la Edge Function de `qz-security` responda correctamente a las peticiones del frontend, debes configurar los siguientes secretos en tu proyecto Supabase.
+
+**1. Nombres exactos requeridos:**
+- `QZ_CERTIFICATE`: Contiene el certificado público completo de QZ Tray (`digital-certificate.txt`).
+- `QZ_PRIVATE_KEY`: Contiene la llave privada (`private-key.pem`). NUNCA exponerla al frontend.
+
+**2. Cómo configurarlos usando Supabase CLI:**
+*(En PowerShell, envuelve las cadenas multilínea con comillas dobles y usa saltos de línea literales, o lee desde un archivo si es muy largo).*
+```bash
+pnpm dlx supabase secrets set QZ_CERTIFICATE="-----BEGIN CERTIFICATE-----
+MII...
+-----END CERTIFICATE-----"
+
+pnpm dlx supabase secrets set QZ_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+MII...
+-----END PRIVATE KEY-----"
+```
+
+**3. Cómo redesplegar la función:**
+```bash
+pnpm dlx supabase functions deploy qz-security --no-verify-jwt
+```
+
+**4. Cómo probar `/certificate`:**
+```powershell
+$origin = "https://gameboxservice.onrender.com"
+$base = "https://pnnokruiikikuygyukbz.supabase.co/functions/v1/qz-security"
+
+Invoke-WebRequest "$base/certificate" `
+  -Method GET `
+  -Headers @{
+    Origin = $origin
+  }
+```
+
+**5. Cómo probar `/sign`:**
+```powershell
+Invoke-WebRequest "$base/sign" `
+  -Method POST `
+  -Headers @{
+    Origin = $origin
+    "Content-Type" = "application/json"
+  } `
+  -Body '{"request": "test-data"}'
+```
+
 ## Regla Estricta: Estilos y Dimensiones
 **Ninguna acción de QZ Tray debe alterar los tamaños de los contenedores CSS.**
 - Los tamaños (`80mm` de ancho en tickets y `7cm x 5cm` en stickers) están manejados nativamente mediante `<style>` dentro de cada HTML con directivas directas en `@page`.

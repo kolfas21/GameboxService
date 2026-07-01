@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
 
     if (req.method === 'GET' && url.pathname.endsWith('/certificate')) {
       if (!certificate) {
-        return new Response('No se encontró el certificado de QZ Tray.', {
+        return new Response('No se encontró el certificado de QZ Tray. Configure el secret QZ_CERTIFICATE.', {
           status: 500,
           headers: { ...getCorsHeaders(req), 'Content-Type': 'text/plain' },
         })
@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
       if (!privateKey) {
         return json(req, {
           ok: false,
-          message: 'No se encontró QZ_PRIVATE_KEY.',
+          message: 'No se encontró la llave privada de QZ Tray. Configure el secret QZ_PRIVATE_KEY.',
         }, 500)
       }
 

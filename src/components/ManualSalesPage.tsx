@@ -363,7 +363,19 @@ const ManualSalesPage: React.FC = () => {
         </div>
 
         {view === 'create' && canCreate ? (
-          <form onSubmit={handleSubmit} className="manual-sale-create-form">
+          <form
+            onSubmit={handleSubmit}
+            className="manual-sale-create-form"
+            onKeyDown={e => {
+              // Evita que el Enter de un lector de código de barras (u otro campo de texto)
+              // envíe el formulario antes de que el usuario haga clic en "Guardar Venta".
+              // Se permite Enter en textarea (saltos de línea) y en botones (accesibilidad de teclado).
+              const target = e.target as HTMLElement
+              if (e.key === 'Enter' && target.tagName !== 'TEXTAREA' && target.tagName !== 'BUTTON') {
+                e.preventDefault()
+              }
+            }}
+          >
             <div className="manual-sale-panel manual-sale-client-section">
               <Section title="Datos del cliente">
                 <div className="manual-sale-client-grid">

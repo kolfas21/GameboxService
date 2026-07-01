@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import { useCustomers } from '../hooks/useCustomers'
 import { useServiceOrders } from '../hooks/useServiceOrders'
 import { useCompanySettings } from '../hooks/useCompanySettings'
@@ -300,22 +299,9 @@ const CreateOrder: React.FC = () => {
       })
       
       if (success) {
-        // Buscar la orden recién creada para mostrar la comanda
-        try {
-          const { data: orders } = await supabase
-            .from('service_orders')
-            .select('*, customers(*)')
-            .eq('customer_id', customer.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-          
-          if (orders && orders.length > 0) {
-            setCreatedOrder(orders[0])
-            setShowComanda(true)
-          }
-        } catch (error) {
-          console.error('Error buscando orden creada:', error)
-        }
+        // Usar directamente la orden recién creada (ya viene completa desde createServiceOrder)
+        setCreatedOrder(success)
+        setShowComanda(true)
         
         showSuccessModal('Orden creada')
         
