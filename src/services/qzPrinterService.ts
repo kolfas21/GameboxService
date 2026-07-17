@@ -11,6 +11,8 @@ export interface TicketItemPrintData {
   subtotal?: number
   serialNumber?: string
   type?: string
+  warrantyMonths?: number
+  warrantyEndDate?: string | Date
 }
 
 export interface TicketPrintData {
@@ -408,6 +410,10 @@ export const printTicket = async (ticketData: TicketPrintData, branch?: string |
     if (item.type) data.push(left(item.type))
     if (item.serialNumber) data.push(left(`SN: ${item.serialNumber}`))
     if (item.unitPrice !== undefined) data.push(left(`Unitario ${formatMoney(item.unitPrice)}`))
+    if (item.warrantyMonths) {
+      const mesesLabel = item.warrantyMonths === 1 ? 'mes' : 'meses'
+      data.push(left(`Garantia: ${item.warrantyMonths} ${mesesLabel} (hasta ${formatDate(item.warrantyEndDate)})`))
+    }
   })
 
   data.push(

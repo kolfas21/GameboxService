@@ -66,6 +66,7 @@ const emptyItem = (): ManualSaleItemInput => ({
   quantity: 1,
   unit_price: 0,
   discount: 0,
+  warranty_months: 1,
 })
 
 const initialWarrantyStartDate = getTodayString()
@@ -80,8 +81,6 @@ const initialForm: CreateManualSaleInput = {
   },
   items: [emptyItem()],
   warranty_start_date: initialWarrantyStartDate,
-  warranty_days: 30,
-  warranty_end_date: calculateWarrantyEndDate(initialWarrantyStartDate, 1),
   payment_method: 'efectivo',
   payment_detail: '',
   observations: defaultWarrantyObservations,
@@ -135,7 +134,6 @@ const ManualSalesPage: React.FC = () => {
   const [cancelReason, setCancelReason] = useState('')
   const [sendTicketWhatsapp, setSendTicketWhatsapp] = useState(false)
   const [sendingWhatsappId, setSendingWhatsappId] = useState<string | null>(null)
-  const [warrantyMonths, setWarrantyMonths] = useState('1')
   const [showTicketModal, setShowTicketModal] = useState(false)
   const [fallbackModal, setFallbackModal] = useState<{isOpen: boolean, errorDetail: string}>({isOpen: false, errorDetail: ''})
 
@@ -161,6 +159,24 @@ const ManualSalesPage: React.FC = () => {
     }
   }, [form.items])
 
+  // Cada producto lleva su propia garantía (ej. consola 12 meses, control 1 mes).
+  // La "garantía general" de la factura se toma como la más larga entre los productos,
+  // solo como referencia rápida; el detalle real queda guardado por producto.
+  const overallWarranty = useMemo(() => {
+    const startDate = form.warranty_start_date || getTodayString()
+    const maxMonths = form.items.reduce((max, item) => Math.max(max, Number(item.warranty_months || 0)), 0)
+    return {
+      startDate,
+      maxMonths,
+      endDate: maxMonths > 0 ? calculateWarrantyEndDate(startDate, maxMonths) : '',
+    }
+  }, [form.items, form.warranty_start_date])
+
+  const getItemWarrantyEndDate = (months?: number) => {
+    const normalizedMonths = Number(months || 0)
+    return normalizedMonths > 0 ? calculateWarrantyEndDate(form.warranty_start_date || getTodayString(), normalizedMonths) : ''
+  }
+
   const updateClient = (field: keyof CreateManualSaleInput['client'], value: string) => {
     setForm(prev => ({ ...prev, client: { ...prev.client, [field]: value } }))
   }
@@ -182,23 +198,31 @@ const ManualSalesPage: React.FC = () => {
     setForm(prev => ({ ...prev, items: prev.items.length === 1 ? prev.items : prev.items.filter((_, itemIndex) => itemIndex !== index) }))
   }
 
-  const handleWarrantyDuration = (months: number) => {
-    const normalizedMonths = Number.isFinite(months) && months > 0 ? months : 0
-    setWarrantyMonths(normalizedMonths > 0 ? String(normalizedMonths) : '')
-    setForm(prev => ({
-      ...prev,
-      warranty_days: normalizedMonths * 30,
-      warranty_end_date: normalizedMonths > 0 ? calculateWarrantyEndDate(prev.warranty_start_date || getTodayString(), normalizedMonths) : '',
-    }))
-  }
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     try {
-      const sale = await createSale({ ...form, payment_detail: '', observations: defaultWarrantyObservations })
+      const warrantyStartDate = form.warranty_start_date || getTodayString()
+      const itemsWithWarranty = form.items.map(item => {
+        const months = Number(item.warranty_months || 0)
+        return {
+          ...item,
+          warranty_months: months,
+          warranty_end_date: months > 0 ? calculateWarrantyEndDate(warrantyStartDate, months) : undefined,
+        }
+      })
+      const maxMonths = itemsWithWarranty.reduce((max, item) => Math.max(max, Number(item.warranty_months || 0)), 0)
+
+      const sale = await createSale({
+        ...form,
+        items: itemsWithWarranty,
+        warranty_start_date: warrantyStartDate,
+        warranty_days: maxMonths > 0 ? maxMonths * 30 : undefined,
+        warranty_end_date: maxMonths > 0 ? calculateWarrantyEndDate(warrantyStartDate, maxMonths) : undefined,
+        payment_detail: '',
+        observations: defaultWarrantyObservations,
+      })
       setSelectedSale(sale)
       setForm(initialForm)
-      setWarrantyMonths('1')
       setView('detail')
       setShowTicketModal(true)
       showSuccess('Venta registrada', `Factura ${sale.invoice_number} creada correctamente.`)
@@ -299,6 +323,8 @@ const ManualSalesPage: React.FC = () => {
           subtotal: item.subtotal,
           serialNumber: item.serial_number || undefined,
           type: productTypeLabels[item.product_type],
+          warrantyMonths: item.warranty_months || undefined,
+          warrantyEndDate: item.warranty_end_date || undefined,
         })),
       }, user?.sede)
     } catch (error) {
@@ -486,6 +512,26 @@ const ManualSalesPage: React.FC = () => {
                               <Trash2 size={16} />
                             </button>
                           </div>
+                          <div className="manual-sale-item-field">
+                            <label className="form-label small fw-semibold">Garantía (meses)</label>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              className="form-control"
+                              placeholder="0"
+                              value={item.warranty_months != null && Number(item.warranty_months) > 0 ? String(item.warranty_months) : ''}
+                              onFocus={e => e.currentTarget.select()}
+                              onChange={e => {
+                                const v = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+                                updateItem(index, 'warranty_months', v === '' ? 0 : Number(v))
+                              }}
+                            />
+                            {Number(item.warranty_months) > 0 && (
+                              <small className="text-muted">
+                                Vence: {formatDateOnly(getItemWarrantyEndDate(Number(item.warranty_months)))}
+                              </small>
+                            )}
+                          </div>
                           <div className="manual-sale-item-description">
                             <label className="form-label small fw-semibold">Descripción</label>
                             <textarea className="form-control" rows={2} value={item.description || ''} onChange={e => updateItem(index, 'description', e.target.value)} />
@@ -499,32 +545,7 @@ const ManualSalesPage: React.FC = () => {
               </div>
 
               <div className="manual-sale-panel manual-sale-payment-column">
-                <Section title="Garantía y pago">
-                <div className="manual-sale-payment-grid">
-                  <div className="manual-sale-compact-field">
-                    <label className="form-label small fw-semibold">Inicio de garantía</label>
-                    <input type="text" className="form-control" value={formatDateOnly(form.warranty_start_date)} readOnly />
-                  </div>
-                  <div className="manual-sale-compact-field">
-                    <label className="form-label small fw-semibold">Meses de garantía</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      className="form-control"
-                      placeholder="Meses"
-                      value={warrantyMonths}
-                      onFocus={e => e.currentTarget.select()}
-                      onChange={e => {
-                        const value = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
-                        setWarrantyMonths(value)
-                        handleWarrantyDuration(Number(value))
-                      }}
-                    />
-                  </div>
-                  <div className="manual-sale-compact-field">
-                    <label className="form-label small fw-semibold">Fin de garantía</label>
-                    <input type="text" className="form-control" value={formatDateOnly(form.warranty_end_date)} readOnly />
-                  </div>
+                <Section title="Pago">
                   <div className="manual-sale-compact-field">
                     <label className="form-label small fw-semibold">
                       Método de pago<span className="text-danger ms-1">*</span>
@@ -535,8 +556,7 @@ const ManualSalesPage: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                </div>
-              </Section>
+                </Section>
               </div>
 
               <div className="card border-0 shadow-sm manual-sale-panel manual-sale-summary-card">
@@ -806,6 +826,7 @@ const SaleDetail: React.FC<SaleDetailProps> = ({
                     <th>Unitario</th>
                     <th>Desc.</th>
                     <th>Subtotal</th>
+                    <th>Garantía</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -819,6 +840,11 @@ const SaleDetail: React.FC<SaleDetailProps> = ({
                       <td>{formatMoney(item.unit_price)}</td>
                       <td>{Number(item.discount) > 0 ? formatMoney(item.discount) : '—'}</td>
                       <td className="fw-semibold">{formatMoney(item.subtotal)}</td>
+                      <td>
+                        {item.warranty_months ? (
+                          <small>{item.warranty_months} {item.warranty_months === 1 ? 'mes' : 'meses'}<br />hasta {formatDateOnly(item.warranty_end_date)}</small>
+                        ) : '—'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -921,6 +947,7 @@ const buildSaleTicketPrintHtml = ({
       ${item.serial_number ? `<div class="muted">SN: ${escapeHtml(item.serial_number)}</div>` : ''}
       <div class="ticket-row muted"><span>Unitario</span><span>${escapeHtml(formatMoney(item.unit_price))}</span></div>
       ${Number(item.discount) > 0 ? `<div class="ticket-row muted"><span>Descuento</span><span>-${escapeHtml(formatMoney(item.discount))}</span></div>` : ''}
+      ${item.warranty_months ? `<div class="muted">Garantía: ${escapeHtml(item.warranty_months)} ${item.warranty_months === 1 ? 'mes' : 'meses'} (hasta ${escapeHtml(formatDateOnly(item.warranty_end_date))})</div>` : ''}
     </div>
   `).join('')
 
@@ -1101,6 +1128,9 @@ const Ticket: React.FC<{
           {Number(item.discount) > 0 && (
             <div className="ticket-row ticket-muted"><span>Descuento</span><span>-{formatMoney(item.discount)}</span></div>
           )}
+          {item.warranty_months ? (
+            <div className="ticket-muted">Garantía: {item.warranty_months} {item.warranty_months === 1 ? 'mes' : 'meses'} (hasta {formatDateOnly(item.warranty_end_date)})</div>
+          ) : null}
         </div>
       ))}
       <div className="ticket-separator" />

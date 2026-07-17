@@ -55,12 +55,19 @@ CREATE TABLE IF NOT EXISTS manual_sale_items (
   unit_price NUMERIC(12, 2) NOT NULL CHECK (unit_price >= 0),
   discount NUMERIC(12, 2) NOT NULL DEFAULT 0 CHECK (discount >= 0),
   subtotal NUMERIC(12, 2) NOT NULL DEFAULT 0 CHECK (subtotal >= 0),
+  warranty_months INTEGER CHECK (warranty_months IS NULL OR warranty_months >= 0),
   warranty_end_date DATE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   CONSTRAINT manual_sale_items_discount_lte_gross_check CHECK (discount <= quantity * unit_price),
   CONSTRAINT manual_sale_items_subtotal_calculated_check CHECK (subtotal = quantity * unit_price - discount)
 );
+
+-- Cada producto de una venta manual puede tener su propia garantía
+-- (ej. una consola 12 meses, un control 1 mes). Columna aditiva y segura
+-- para instalaciones existentes que ya tengan la tabla creada.
+ALTER TABLE manual_sale_items
+  ADD COLUMN IF NOT EXISTS warranty_months INTEGER;
 
 CREATE TABLE IF NOT EXISTS manual_sale_whatsapp_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

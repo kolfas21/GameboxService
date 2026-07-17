@@ -17,6 +17,7 @@ export interface ManualSaleItem {
   unit_price: number
   discount: number
   subtotal: number
+  warranty_months: number | null
   warranty_end_date: string | null
   created_at: string
   updated_at: string
@@ -82,6 +83,7 @@ export interface ManualSaleItemInput {
   quantity: number
   unit_price: number
   discount?: number
+  warranty_months?: number
   warranty_end_date?: string
 }
 

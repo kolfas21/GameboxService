@@ -217,6 +217,7 @@ export const useManualSales = (autoLoad = true) => {
         unit_price: toMoney(item.unit_price),
         discount: toMoney(item.discount),
         subtotal: calculateItemSubtotal(item),
+        warranty_months: item.warranty_months ?? null,
         warranty_end_date: item.warranty_end_date || warrantyEndDate,
       }))
 

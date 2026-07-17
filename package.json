@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "render-build": "npm install && npm run build"
+    "render-build": "npm install && npm run build",
+    "doctor": "npx react-doctor@latest"
   },
   "engines": {
     "node": ">=18.0.0",

@@ -37,7 +37,9 @@ export const useRealtimeSubscription = (
     if (!enabled) {
       // Si está deshabilitado, desconectar
       void disconnectChannel()
-      return
+      return () => {
+        void disconnectChannel()
+      }
     }
 
     const channelName = `${table}_changes_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`

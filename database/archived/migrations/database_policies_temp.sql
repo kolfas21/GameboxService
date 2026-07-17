@@ -1,3 +1,8 @@
+-- ⚠️ ADVERTENCIA: SCRIPT ARCHIVADO Y PELIGROSO - NO EJECUTAR EN PRODUCCIÓN ⚠️
+-- Este script deshabilita Row Level Security (RLS) y/o crea políticas permisivas.
+-- Se conserva solo como referencia histórica de debugging. Ejecutarlo expone
+-- las tablas a lectura/escritura sin restricciones de propietario o tenant.
+--
 -- Políticas RLS TEMPORALES para debugging
 -- Ejecutar en Supabase SQL Editor para diagnóstico
 
