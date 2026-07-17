@@ -159,19 +159,6 @@ const ManualSalesPage: React.FC = () => {
     }
   }, [form.items])
 
-  // Cada producto lleva su propia garantía (ej. consola 12 meses, control 1 mes).
-  // La "garantía general" de la factura se toma como la más larga entre los productos,
-  // solo como referencia rápida; el detalle real queda guardado por producto.
-  const overallWarranty = useMemo(() => {
-    const startDate = form.warranty_start_date || getTodayString()
-    const maxMonths = form.items.reduce((max, item) => Math.max(max, Number(item.warranty_months || 0)), 0)
-    return {
-      startDate,
-      maxMonths,
-      endDate: maxMonths > 0 ? calculateWarrantyEndDate(startDate, maxMonths) : '',
-    }
-  }, [form.items, form.warranty_start_date])
-
   const getItemWarrantyEndDate = (months?: number) => {
     const normalizedMonths = Number(months || 0)
     return normalizedMonths > 0 ? calculateWarrantyEndDate(form.warranty_start_date || getTodayString(), normalizedMonths) : ''
